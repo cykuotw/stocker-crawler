@@ -1,10 +1,11 @@
 import requests
 import pandas as pd
 import json
+from datetime import datetime
 from io import StringIO
 
 def crawlCriticalInformation(parse_to_json = False):
-    res = requests.get('http://mops.twse.com.tw/mops/web/ajax_t05sr01_1')
+    res = requests.get('https://mops.twse.com.tw/mops/web/ajax_t05sr01_1')
     res.encode = 'utf-8'
     dfs = pd.read_html(StringIO(res.text))
 
