@@ -9,6 +9,8 @@ def crawlCriticalInformation(parse_to_json = False):
     res.encode = 'utf-8'
     dfs = pd.read_html(StringIO(res.text))
 
+    if len(dfs)==1:
+        return None
     ret = pd.DataFrame()
     # code, name, date, content
 
