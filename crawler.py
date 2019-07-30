@@ -1,3 +1,4 @@
+#coding=utf-8
 import requests
 import pandas as pd
 import json
@@ -7,22 +8,25 @@ from io import StringIO
 def crawlCriticalInformation(parse_to_json = False):
     res = requests.get('https://mops.twse.com.tw/mops/web/ajax_t05sr01_1')
     res.encode = 'utf-8'
-    dfs = pd.read_html(StringIO(res.text))
+    dfs = pd.read_html(StringIO(res.text), header=0, flavor='bs4')
 
-    if len(dfs)==1:
-        return None
     ret = pd.DataFrame()
+    
+    if len(dfs)==1:
+        return ret
     # code, name, date, content
 
-    criteria_pos = ['財務報', '盈餘']
-    criteria_neg = ['比率']
+    #print(dfs[1])
+
+    criteria_pos = [u'財務報', u'盈餘']
+    criteria_neg = [u'比率']
 
     for index in range(0, len(dfs[1])):
         match = False
         for crp in criteria_pos:
-            match = match or ( dfs[1].iloc[index]['主旨'].find(crp) != -1)
+            match = match or ( dfs[1].iloc[index][u'主旨'].find(crp) != -1)
             for crn in criteria_neg:
-                if dfs[1].iloc[index]['主旨'].find(crn) != -1:
+                if dfs[1].iloc[index][u'主旨'].find(crn) != -1:
                     match = False
 
             if(match):
@@ -44,7 +48,7 @@ def crawlCriticalInformation(parse_to_json = False):
             try:
                 tmpDict = {}
                 for k in colHeader:
-                    if k == '公司代號':
+                    if k == u'公司代號':
                         tmpDict[k] = str(int(ret.loc[i][k]))
                     else:
                         tmpDict[k] = ret.loc[i][k]
