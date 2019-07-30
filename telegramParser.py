@@ -15,7 +15,7 @@ def sendCriticalInfo(df):
         text = text + "<code>" + str(df.iloc[index]['主旨']) + "</code>\n\n"
         
         cnt = cnt + 1
-        if cnt == 4:
+        if cnt == 4 or (index == len(df)-1 and cnt != 0):
             text = text + "\n" + "https://mops.twse.com.tw/mops/web/ajax_t05sr01_1"
             postData = {'Content-Type': contentType, 'chat_id': chatID, 'text' : text, 
                         'parse_mode' : parse_mode}
