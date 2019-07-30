@@ -19,7 +19,7 @@ def crawlCriticalInformation(parse_to_json = False):
     #print(dfs[1])
 
     criteria_pos = [u'財務報', u'盈餘']
-    criteria_neg = [u'比率']
+    criteria_neg = [u'比率', u'百分']
 
     for index in range(0, len(dfs[1])):
         match = False
