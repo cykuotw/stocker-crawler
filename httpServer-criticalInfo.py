@@ -2,6 +2,7 @@ import http.server
 import requests
 import os
 import threading
+import json
 from socketserver import ThreadingMixIn
 from urllib.parse import unquote, parse_qs
 from crawler import crawlCriticalInformation
@@ -16,7 +17,7 @@ class CriticalInfoServer(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'text/json')
             self.end_headers()
-            self.wfile.write(json.dumps({'安安': '你好'}).encode(encoding='utf_8'))
+            self.wfile.write(json.dumps({'安安': '你好'}).eㄇncode(encoding='utf_8'))
             return
         else:    
             self.send_response(200)
