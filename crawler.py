@@ -18,15 +18,19 @@ def crawlCriticalInformation(parse_to_json = False):
 
     #print(dfs[1])
 
-    criteria_pos = [u'財務報', u'盈餘']
-    criteria_neg = [u'比率', u'百分', u'補', u'重']
+    file = open('criticalInfo.json', 'r', encoding='utf-8')
+    settings = json.loads(file.read())
+    file.close()
+
+    criteria_pos = settings["criteria_pos"]
+    criteria_neg = settings["criteria_neg"]
 
     for index in range(0, len(dfs[1])):
         match = False
         for crp in criteria_pos:
-            match = match or ( dfs[1].iloc[index][u'主旨'].find(crp) != -1)
+            match = match or ( dfs[1].iloc[index]['主旨'].find(crp) != -1)
             for crn in criteria_neg:
-                if dfs[1].iloc[index][u'主旨'].find(crn) != -1:
+                if dfs[1].iloc[index]['主旨'].find(crn) != -1:
                     match = False
 
             if(match):
@@ -48,7 +52,7 @@ def crawlCriticalInformation(parse_to_json = False):
             try:
                 tmpDict = {}
                 for k in colHeader:
-                    if k == u'公司代號':
+                    if k == '公司代號':
                         tmpDict[k] = str(int(ret.loc[i][k]))
                     else:
                         tmpDict[k] = ret.loc[i][k]
