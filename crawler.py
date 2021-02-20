@@ -4,6 +4,9 @@ import pandas as pd
 import json
 from datetime import datetime
 from io import StringIO
+from bs4 import BeautifulSoup
+from random import randint
+
 
 def crawlCriticalInformation(parse_to_json = False):
     res = requests.get('https://mops.twse.com.tw/mops/web/ajax_t05sr01_1')
@@ -11,12 +14,10 @@ def crawlCriticalInformation(parse_to_json = False):
     dfs = pd.read_html(StringIO(res.text), header=0, flavor='bs4')
 
     ret = pd.DataFrame()
-    
+
     if len(dfs)==1:
         return ret
     # code, name, date, content
-
-    #print(dfs[1])
 
     file = open('criticalInfo.json', 'r', encoding='utf-8')
     settings = json.loads(file.read())
@@ -33,21 +34,19 @@ def crawlCriticalInformation(parse_to_json = False):
                 if dfs[1].iloc[index]['主旨'].find(crn) != -1:
                     match = False
 
-            if(match):
-                    try:
-                        tmp = dfs[1].iloc[index]
-                        ret = ret.append(tmp)
-                    except Exception as err:
-                        print(err)
-                    break      
+            if (match):
+                try:
+                    tmp = dfs[1].iloc[index]
+                    ret = ret.append(tmp)
+                except Exception as err:
+                    print(err)
+                break
     if parse_to_json:
         colHeader = list(ret.columns.values)
         colHeader.pop(0)
         rowHeader = list(ret.index)
-        #print(dfs.loc[rowHeader[1]])
 
         dataArr = []
-
         for i in rowHeader:
             try:
                 tmpDict = {}
@@ -62,3 +61,56 @@ def crawlCriticalInformation(parse_to_json = False):
 
         ret = json.dumps(dataArr)
     return ret
+
+
+def crawlDataUseBs4():
+    exchangeTypes = ['sii', 'otc', 'rotc', 'pub']
+    result = []
+
+    for exchangeType in exchangeTypes:
+        res = requests.post(
+            'https://mops.twse.com.tw/mops/web/ajax_t05sr01_1',
+            data = {
+                'encodeURIComponent': 1,
+                'TYPEK': 'sii',
+                'step': 0
+            })
+        soup = BeautifulSoup(res.text, 'html.parser')
+        table = soup.findChildren('table')
+        rows = table[1].findChildren('tr')
+
+        for i in range(1, len(rows)):
+            rowElements = rows[i].findChildren('td')
+            formVar = rowElements[5].findChildren(
+                'input')[0]['onclick'].split("'")
+            formStockNum = formVar[7]
+            formDate = formVar[5]
+            formTime = formVar[3]
+            seqNum = formVar[1]
+            title = rowElements[4].getText().replace('\r\n', '')
+
+            i = randint(1,199)
+            urlLink = (
+                "https://mops.twse.com.tw/mops/web/t05st02?"
+                + "step=1&"
+                + "off=1&"
+                + "firstin=1&"
+                + f"TYPEK={exchangeType}&"
+                + f"i={i}&"
+                + f"h{i}0={rowElements[1].getText()}&"
+                + f"h{i}1={formStockNum}&"
+                + f"h{i}2={formDate}&"
+                + f"h{i}3={formTime}&"
+                + f"h{i}4={title}&"
+                + f"h{i}5={seqNum}&"
+                + "pgname=t05st02"
+            )
+            result.append({
+                '股號': rowElements[0].getText(),
+                '公司名稱': rowElements[1].getText(),
+                '發言日期': rowElements[2].getText(),
+                '發言時間': rowElements[3].getText(),
+                '主旨': title,
+                'link': urlLink
+            })
+    return result
