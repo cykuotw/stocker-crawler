@@ -114,3 +114,45 @@ def crawlDataUseBs4():
                 'link': urlLink
             })
     return result
+
+def filterKeyword(infolist):
+    ret = []
+
+    for r in infolist:
+        if(r['股號'] == '2901'):
+            print(r)
+    print('\n')
+    
+    file = open('criticalInfo.json', 'r', encoding='utf-8')
+    settings = json.loads(file.read())
+    file.close()
+
+    criteria_pos = settings["criteria_pos"]
+    criteria_neg = settings["criteria_neg"]
+
+    for index in range(0, len(infolist)):
+        match = False
+        for crp in criteria_pos:
+            match = match or (infolist[index]['主旨'].find(crp) != -1)
+            for crn in criteria_neg:
+                if infolist[index]['主旨'].find(crn) != -1:
+                    match = False
+            if(match):
+                try:
+                    tmp = infolist[index]
+                    ret.append(tmp)
+                except Exception as err:
+                    print(err)
+                break
+    
+    for r in ret:
+        if(r['股號'] == '2901'):
+            print(r)
+    return ret
+
+if __name__ == '__main__':
+    data = crawlDataUseBs4()
+    # print(len(data))
+    data = filterKeyword(data)
+    # print(len(data))
+    # print(data[0])
