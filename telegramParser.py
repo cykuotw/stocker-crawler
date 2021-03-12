@@ -25,7 +25,7 @@ def sendCriticalInfo(df, debug=False):
             print(text)
             break
         else:
-            if cnt == 4 or (index == len(df)-1 and cnt != 0):
+            if cnt == 30 or (index == len(df)-1 and cnt != 0):
                 postData = {
                     'Content-Type': contentType,
                     'chat_id': chatID,
@@ -35,7 +35,6 @@ def sendCriticalInfo(df, debug=False):
                 r = requests.post(postURL, postData)
                 text = ""
                 cnt = 0
-                # break
 
 if __name__ == '__main__':
     postURL = 'https://api.telegram.org/bot730162385:AAGgbRDHlQVVb8A3ovVEvuKHO1U3yqiM9Fw/sendMessage'
