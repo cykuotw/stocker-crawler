@@ -14,14 +14,13 @@ def sendCriticalInfo(df, debug=False):
     cnt = 0
 
     for index in range(0, len(df)):
+        text += "*" + str(int(df[index]['股號'])) + "*\t"
+        text += "*" + str(df[index]['公司名稱']) + "*\t"
+        text += "(" + str(df[index]['發言日期']) + ")\n"
+        text += "[" + str(df[index]['主旨']) + "]"
+        text += "(%s)\n\n" % str(re.sub(r"[\(\)]+", "-", df[index]['link']))
+        cnt = cnt + 1
 
-        if(df[index]['公司名稱'] == '欣欣'):
-            text += "*" + str(int(df[index]['股號'])) + "*\t"
-            text += "*" + str(df[index]['公司名稱']) + "*\t"
-            text += "(" + str(df[index]['發言日期']) + ")\n"
-            text += "[" + str(df[index]['主旨']) + "]"
-            text += "(%s)\n\n" % str(re.sub(r"[\(\)]+", "-", df[index]['link']))
-            cnt = cnt + 1
         if debug:
             print(text)
             break
@@ -32,11 +31,11 @@ def sendCriticalInfo(df, debug=False):
                     'chat_id': chatID,
                     'text' : text,
                     'parse_mode' : parse_mode}
-                print(text)
-                # r = requests.post(postURL, postData)
+                # print(text)
+                r = requests.post(postURL, postData)
                 text = ""
                 cnt = 0
-                break
+                # break
 
 if __name__ == '__main__':
     postURL = 'https://api.telegram.org/bot730162385:AAGgbRDHlQVVb8A3ovVEvuKHO1U3yqiM9Fw/sendMessage'

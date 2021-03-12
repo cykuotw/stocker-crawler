@@ -72,7 +72,7 @@ def crawlDataUseBs4():
             'https://mops.twse.com.tw/mops/web/ajax_t05sr01_1',
             data = {
                 'encodeURIComponent': 1,
-                'TYPEK': 'sii',
+                'TYPEK': exchangeType,
                 'step': 0
             })
         soup = BeautifulSoup(res.text, 'html.parser')
@@ -117,11 +117,6 @@ def crawlDataUseBs4():
 
 def filterKeyword(infolist):
     ret = []
-
-    for r in infolist:
-        if(r['股號'] == '2901'):
-            print(r)
-    print('\n')
     
     file = open('criticalInfo.json', 'r', encoding='utf-8')
     settings = json.loads(file.read())
@@ -144,15 +139,12 @@ def filterKeyword(infolist):
                 except Exception as err:
                     print(err)
                 break
-    
-    for r in ret:
-        if(r['股號'] == '2901'):
-            print(r)
     return ret
+
 
 if __name__ == '__main__':
     data = crawlDataUseBs4()
-    # print(len(data))
+    print(len(data))
     data = filterKeyword(data)
-    # print(len(data))
+    print(len(data))
     # print(data[0])

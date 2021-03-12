@@ -5,6 +5,7 @@ from telegramParser import sendCriticalInfo as infoSender
 
 # data = info(False)
 data = crawlDataUseBs4()
+print(len(data))
 data = filterKeyword(data)
 
 # print(len(data))
