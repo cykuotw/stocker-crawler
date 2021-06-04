@@ -1,7 +1,7 @@
 import requests
 import re
 
-def sendCriticalInfo(df, debug=False):
+def sendCriticalInfo(data, debug=False):
     postURL = 'https://api.telegram.org/bot730162385:AAGgbRDHlQVVb8A3ovVEvuKHO1U3yqiM9Fw/sendMessage'
     chatID = '@stockerdailyinfo'
     parse_mode = 'markdown'
@@ -13,28 +13,32 @@ def sendCriticalInfo(df, debug=False):
         text = ""
     cnt = 0
 
-    for index in range(0, len(df)):
-        text += "*" + str(int(df[index]['股號'])) + "*\t"
-        text += "*" + str(df[index]['公司名稱']) + "*\t"
-        text += "(" + str(df[index]['發言日期']) + ")\n"
-        text += "[" + str(df[index]['主旨']) + "]"
-        text += "(%s)\n\n" % str(re.sub(r"[\(\)]+", "-", df[index]['link']))
+    for index in range(len(data)):
+        if data[index]['negativeTag']:
+            continue
+        text += "*" + str(int(data[index]['股號'])) + "*\t"
+        text += "*" + str(data[index]['公司名稱']) + "*\t"
+        text += "(" + str(data[index]['發言日期']) + ")\n"
+        text += "[" + str(data[index]['主旨']) + "]"
+        text += "(%s)\n\n" % str(re.sub(r"[\(\)]+", "-", data[index]['link']))
         cnt = cnt + 1
 
         if debug:
             print(text)
             break
         else:
-            if cnt == 30 or (index == len(df)-1 and cnt != 0):
+            if cnt == 10 or (index == len(data)-1 and cnt != 0):
                 postData = {
                     'Content-Type': contentType,
                     'chat_id': chatID,
                     'text' : text,
-                    'parse_mode' : parse_mode}
+                    'parse_mode' : parse_mode
+                }
                 # print(text)
                 r = requests.post(postURL, postData)
                 text = ""
                 cnt = 0
+
 
 if __name__ == '__main__':
     postURL = 'https://api.telegram.org/bot730162385:AAGgbRDHlQVVb8A3ovVEvuKHO1U3yqiM9Fw/sendMessage'
@@ -51,7 +55,7 @@ if __name__ == '__main__':
     url = re.sub(r"[\(\)]+", "-", url)
     # text += '[代重要子公司震旦開發(股)公司公告發放股利](%s)' % s.tinyurl.short(url)
     text += '[代重要子公司震旦開發(股)公司公告發放股利](%s)' % url
-    
+
 
     print(text)
     # print(len(text))
@@ -62,4 +66,3 @@ if __name__ == '__main__':
         'text' : text,
         'parse_mode' : parse_mode}
     r = requests.post(postURL, postData)
-    
