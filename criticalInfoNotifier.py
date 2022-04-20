@@ -1,7 +1,6 @@
-from crawler import crawlCriticalInformation as info
-from crawler import crawlDataUseBs4
-from telegramParser import sendCriticalInfo as infoSender
-from notifierTool import filterKeyword, postStockerAnnouncement
+from crawler.crawlerCriticalInfo import crawlCriticalInformation as info
+from crawler.crawlerCriticalInfo import crawlDataUseBs4
+from notifier.notifierTool import filterKeyword, postStockerAnnouncement, infoSender
 from datetime import datetime
 
 # data = info(False)
@@ -12,5 +11,5 @@ if len(data) == 0:
     print("No critical info.")
 else:
     postStockerAnnouncement(data)
-    if datetime.now().hour >= 21 and datetime.now().hour <= 22:
-        infoSender(data, False)
+    # if datetime.now().hour >= 21 and datetime.now().hour <= 22:
+    infoSender(data, False)
