@@ -126,11 +126,6 @@ def getMonthlyRevenue(westernYearIn=2013, monthIn=1):
         dataPayload['month'] = str(monthIn)
         url = "{}/month_revenue/{}".format(stockerUrl, dataPayload['stock_id'])
         res = requests.post(url, data=json.dumps(dataPayload))
-        # print('(' + str(i) + '/' + str(len(data)) + ')', end=' ')
-        # print(dataPayload['stock_id'], end=' ')
-        # print(str(westernYearIn) + "-" + str(monthIn), end=' ')
-        # print(res)
-        # time.sleep(0.05)
 
 
 def getIncomeSheet(companyID=1101, westernYearIn=2019, seasonIn=1):

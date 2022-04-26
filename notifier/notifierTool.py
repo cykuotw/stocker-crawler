@@ -5,6 +5,9 @@ import re
 from datetime import datetime
 
 def postStockerAnnouncement(infoList):
+    """
+    Post every critical information to stocker server
+    """
     with open('critical_file/host.json') as hostReader:
         criticalInfo = json.loads(hostReader.read())
     HOST = criticalInfo['HOST']
@@ -27,6 +30,11 @@ def postStockerAnnouncement(infoList):
         requests.post(url, data=json.dumps(infoJson))
 
 def filterKeyword(infolist):
+    """
+    Filter critical information with positive/negative keywords.
+    - Positive keyword: add matched keyword into tags
+    - Negative keyword: tag with negativeTag if there is any match
+    """
     with open('critical_file/critical_info_filter.json') as criticalInfoReader:
         criticalInfo = json.loads(criticalInfoReader.read())
 
@@ -46,6 +54,10 @@ def filterKeyword(infolist):
     return infolist
 
 def infoSender(data, debug=False):
+    """
+    Post filtered critical information to telegram channel.
+    Info with True negativeTag is neglected.
+    """
     with open('critical_file/chatbot_info.json') as chatbotReader:
         chatbotInfo = json.loads(chatbotReader.read())
     postURL = chatbotInfo["telegram"]["postURL"]
@@ -89,6 +101,9 @@ def infoSender(data, debug=False):
                 cnt = 0
 
 def toMarkdown(data):
+    """
+    Helper function to infoSender
+    """
     text = ""
     text += "*" + str(int(data['股號'])) + "*\t"
     text += "*" + str(data['公司名稱']) + "*\t"
@@ -100,6 +115,9 @@ def toMarkdown(data):
     return text
 
 def toStringExchageType(exchangeType='sii'):
+    """
+    Helper function to infoSender
+    """
     if exchangeType == 'sii':
         tp = "上市"
     elif exchangeType == 'otc':
