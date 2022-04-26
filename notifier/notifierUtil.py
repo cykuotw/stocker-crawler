@@ -130,3 +130,14 @@ def toStringExchageType(exchangeType='sii'):
         tp = ""
 
     return tp
+
+def pushSlackMessage(username, content):
+    with open('critical_file/chatbot_info.json') as webhookReader:
+        chatbotInfo = json.loads(webhookReader.read())
+    requests.post(
+        chatbotInfo['slack']['slack'],
+        data=json.dumps({
+            "username": username,
+            "text": content
+        }),
+        headers = {"content-type": "application/json"})
