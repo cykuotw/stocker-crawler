@@ -7,11 +7,12 @@ import pandas as pd
 import requests
 from crawler.core.basicInfo import crawlSummaryStockNoFromTWSE
 from crawler.core.report import crawlIncomeSheet
-from crawler.interface.basicInfo import (getStockNoBasicInfo,
+from crawler.interface.basicInfo import (getFinStatFromServer,
+                                         getStockNoBasicInfo,
                                          getSummaryStockNoServerExist)
 from crawler.interface.util import (SLEEP_TIME, companyTypes,
-                                    getFinStatFromServer, incomeSheetKeySel,
-                                    stockerUrl, transformHeaderNoun)
+                                    incomeSheetKeySel, stockerUrl,
+                                    transformHeaderNoun)
 
 
 def getIncomeSheet(companyID=1101, westernYearIn=2019, seasonIn=1):
