@@ -1,10 +1,14 @@
 # coding=utf-8
 import json
+import random
+import time
 from datetime import datetime
 from io import StringIO
 
 import pandas as pd
 import requests
+
+SLEEPTIME = 10
 
 def crawlBasicInformation(companyType):
     """
@@ -95,3 +99,79 @@ def crawlDelistedCompany(companyType):
         html_dfLast = pd.read_html(StringIO(resultLast.text), header=0)
         html_df = pd.concat([html_dfCurr[0], html_dfLast[0]])
         return html_df['股票代號'].values.tolist()
+
+def crawlSummaryStockNoFromTWSE(
+        reportTypes='income_sheet',
+        companyType='sii',
+        westernYearIn=2019,
+        seasonIn=3):
+    """this method is used to crawler entire income sheet stock number.
+    According to the received parameter type, westernYearIn and seasonIn,
+    Go to the specific website and crawler stock number
+    that has released the income sheet.
+
+    Args:
+        type: a string of stock(sii, otc)
+        westernYearIn: Year of the West
+        seasonIn: Financial quarter(1, 2, 3, 4)
+
+    Return:
+        result: a list with stock numbers inside
+
+    Raises:
+        Exception: no table in request result or others things.
+    """
+    season = str(seasonIn).zfill(2)
+    print(reportTypes + " " + companyType + " summary "
+          + str(westernYearIn) + 'Q' + str(season), end='...')
+    year = str(westernYearIn - 1911)
+
+    if reportTypes == 'balance_sheet':
+        url = "https://mops.twse.com.tw/mops/web/ajax_t163sb05"
+    else:
+        url = 'https://mops.twse.com.tw/mops/web/ajax_t163sb04'
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "encodeURIComponent": "1",
+        "step": "1",
+        "firstin": "1",
+        "off": "1",
+        "isQuery": 'Y',
+        "TYPEK": companyType,
+        "year": year,
+        "season": season,
+    }
+
+    retry = 0
+    stockNums = []
+
+    while(True):
+        try:
+            req = requests.post(url, headers, timeout=(2, 25))
+            print("request")
+            req.encoding = "utf-8"
+            html_df = pd.read_html(req.text, converters={'公司代號': str})
+            print("done.")
+        except ValueError:
+            print('%s no %s data for %sQ0%s'
+                  % (datetime.today().strftime("%Y-%m-%d"),
+                     reportTypes,
+                     westernYearIn,
+                     seasonIn))
+            break
+        except Exception as ex:
+            if retry == 2:
+                return []
+            retry = retry + 1
+            delay = SLEEPTIME + random.randrange(0, 4)
+            print("  ", end="")
+            print(type(ex).__name__, end=" ")
+            print("catched. Retry in %s sec." % (delay))
+            time.sleep(delay)
+        else:
+            for idx in range(1, len(html_df)):
+                stockNums += list(html_df[idx]['公司代號'])
+            break
+
+    return stockNums
