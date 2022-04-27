@@ -10,7 +10,7 @@ def updateDailyPrice(datetimeIn=datetime.now()):
     data = crawlDailyPrice(datetimeIn)
     stockTypes = ['sii', 'otc']
     for stockType in stockTypes:
-        if data[stockType] is None:
+        if data[stockType] is None or data[stockType].shape[0] < 5:
             continue
         stockNumsApi = "{}/stock_number?type={}".format(stockerUrl, stockType)
         stockIDs = json.loads(requests.get(stockNumsApi).text)
