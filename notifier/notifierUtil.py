@@ -8,7 +8,7 @@ def postStockerAnnouncement(infoList):
     """
     Post every critical information to stocker server
     """
-    with open('critical_file/host.json') as hostReader:
+    with open('settings/critical_file/host.json') as hostReader:
         criticalInfo = json.loads(hostReader.read())
     HOST = criticalInfo['HOST']
 
@@ -35,7 +35,7 @@ def filterKeyword(infolist):
     - Positive keyword: add matched keyword into tags
     - Negative keyword: tag with negativeTag if there is any match
     """
-    with open('critical_file/critical_info_filter.json') as criticalInfoReader:
+    with open('settings/critical_file/critical_info_filter.json') as criticalInfoReader:
         criticalInfo = json.loads(criticalInfoReader.read())
 
     criteria_pos = criticalInfo["criteria_pos"]
@@ -58,7 +58,7 @@ def infoSender(data, debug=False):
     Post filtered critical information to telegram channel.
     Info with True negativeTag is neglected.
     """
-    with open('critical_file/chatbot_info.json') as chatbotReader:
+    with open('settings/critical_file/chatbot_info.json') as chatbotReader:
         chatbotInfo = json.loads(chatbotReader.read())
     postURL = chatbotInfo["telegram"]["postURL"]
     chatID = chatbotInfo["telegram"]["chatID"]
@@ -72,7 +72,7 @@ def infoSender(data, debug=False):
     cnt = 0
 
     for index in range(len(data)):
-        if data[index]['negativeTag']:
+        if data[index]['negativeTag'] or len(data[index]['tags']) == 0:
             continue
         text += toMarkdown(data[index])
         cnt += 1
