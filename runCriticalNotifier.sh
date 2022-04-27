@@ -1,5 +1,5 @@
 #!/bin/bash
-# cd ~/project/stockerCrawler
+# cd ~/project/stocker-crawler
 cd ~/stocker/stocker-crawler
 source venv/bin/activate
 python3 criticalInfoNotifier.py
