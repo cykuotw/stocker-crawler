@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 
@@ -21,6 +22,8 @@ companyTypes = ['sii', 'otc', 'rotc', 'pub']
 
 # logging setting
 log_filename = datetime.now().strftime("log/crawler %Y-%m-%d.log")
+if os.path.exists("log") is not True:
+    os.mkdir("log")
 fileHandler = TimedRotatingFileHandler(
     log_filename, when='D', interval=1,
     backupCount=30, encoding='UTF-8', delay=False, utc=False)

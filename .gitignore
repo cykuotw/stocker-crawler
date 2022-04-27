@@ -3,5 +3,5 @@ __pycache__
 *.json
 /venv
 /settings
-
+/log
 .DS_store
