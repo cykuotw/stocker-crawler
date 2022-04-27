@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from crawler.core.criticalInfo import crawlDataUseBs4
 from notifier.notifierUtil import (filterKeyword, infoSender,
                                    postStockerAnnouncement)
@@ -10,5 +12,5 @@ if len(data) == 0:
     print("No critical info.")
 else:
     postStockerAnnouncement(data)
-    # if datetime.now().hour >= 21 and datetime.now().hour <= 22:
-    infoSender(data, False)
+    if datetime.now().hour >= 21 and datetime.now().hour <= 22:
+        infoSender(data, False)
