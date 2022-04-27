@@ -1,8 +1,5 @@
-from datetime import datetime
-
-from crawler.core.criticalInfo import crawlCriticalInformation as info
 from crawler.core.criticalInfo import crawlDataUseBs4
-from notifier.notifierTool import (filterKeyword, infoSender,
+from notifier.notifierUtil import (filterKeyword, infoSender,
                                    postStockerAnnouncement)
 
 # data = info(False)

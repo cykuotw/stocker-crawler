@@ -4,8 +4,6 @@ from io import StringIO
 import pandas as pd
 import requests
 
-SLEEPTIME = 10
-
 def crawlDailyPrice(dateTime):
     """
     @description:
