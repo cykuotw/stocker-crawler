@@ -20,8 +20,7 @@ def getCashFlow(
 
     data = transformHeaderNoun(data, "cashflow")
     dataPayload = {}
-    with open(
-            './data_key_select/cashflow_key_select.txt',
+    with open('settings/data_key_select/cashflow_key_select.txt',
             encoding='utf-8') as cashflow_key_select:
         cashflowKeySel = set(
             line.strip() for line in cashflow_key_select)

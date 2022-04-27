@@ -25,8 +25,7 @@ def getBalanceSheet(
     data = transformHeaderNoun(data, "balance_sheet")
 
     dataPayload = {}
-    with open(
-            './data_key_select/balance_sheet_key_select.txt',
+    with open('settings/data_key_select/balance_sheet_key_select.txt',
             encoding='utf-8') as balance_sheet_key_select:
         balanceSheetKeySel = set(
             line.strip() for line in balance_sheet_key_select)

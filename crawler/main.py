@@ -44,9 +44,10 @@ def dailyRoutineWork():
             updateIncomeSheet(now.year, 3)
 
         if datetime.now().hour >= 21:
-            with open('./critical_file/testWebhook.json') as webhookReader:
+            with open('settings/critical_file/chatbot_info.json') as webhookReader:
                 webhook = json.loads(webhookReader.read())
-
+            webhook = webhook['slack']
+            
             url = "{}/{}?{}"
             queryString = 'option={}&webhook={}'
 
