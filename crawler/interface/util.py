@@ -16,6 +16,18 @@ with open('settings/data_key_select/income_sheet_key_select.txt',
         encoding='utf-8') as income_sheet_key_select:
     incomeSheetKeySel = set(line.strip() for line in income_sheet_key_select)
 
+with open('settings/data_key_select/balance_sheet_key_select.txt',
+        encoding='utf-8') as balance_sheet_key_select:
+    balanceSheetKeySel = set(line.strip() for line in balance_sheet_key_select)
+
+with open('settings/data_key_select/cashflow_key_select.txt',
+        encoding='utf-8') as cashflow_key_select:
+    cashflowKeySel = set(line.strip() for line in cashflow_key_select)
+
+with open('settings/critical_file/chatbot_info.json') as webhookReader:
+    webhook = json.loads(webhookReader.read())
+webhook = webhook['slack']
+
 SLEEP_TIME = 11
 
 companyTypes = ['sii', 'otc', 'rotc', 'pub']

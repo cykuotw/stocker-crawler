@@ -7,7 +7,8 @@ from crawler.core.basicInfo import crawlSummaryStockNoFromTWSE
 from crawler.core.report import crawlBalanceSheet
 from crawler.interface.basicInfo import (getStockNoBasicInfo,
                                          getSummaryStockNoServerExist)
-from crawler.interface.util import (SLEEP_TIME, companyTypes, stockerUrl,
+from crawler.interface.util import (SLEEP_TIME, balanceSheetKeySel,
+                                    companyTypes, stockerUrl,
                                     transformHeaderNoun)
 
 
@@ -25,10 +26,6 @@ def getBalanceSheet(
     data = transformHeaderNoun(data, "balance_sheet")
 
     dataPayload = {}
-    with open('settings/data_key_select/balance_sheet_key_select.txt',
-            encoding='utf-8') as balance_sheet_key_select:
-        balanceSheetKeySel = set(
-            line.strip() for line in balance_sheet_key_select)
 
     for key in balanceSheetKeySel:
         try:

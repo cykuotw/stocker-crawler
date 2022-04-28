@@ -6,7 +6,7 @@ from datetime import date, datetime
 import requests
 
 from notifier.notifierUtil import pushSlackMessage
-from crawler.interface.util import SLEEP_TIME, companyTypes, stockerUrl
+from crawler.interface.util import SLEEP_TIME, companyTypes, stockerUrl, webhook
 from crawler.interface.basicInfo import updateDelistedCompany, getBasicInfo
 from crawler.interface.general import updateDailyPrice
 from crawler.interface.derivatives import updateStockCommodity
@@ -44,10 +44,6 @@ def dailyRoutineWork():
             updateIncomeSheet(now.year, 3)
 
         if datetime.now().hour >= 21:
-            with open('settings/critical_file/chatbot_info.json') as webhookReader:
-                webhook = json.loads(webhookReader.read())
-            webhook = webhook['slack']
-            
             url = "{}/{}?{}"
             queryString = 'option={}&webhook={}'
 

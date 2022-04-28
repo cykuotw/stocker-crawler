@@ -7,8 +7,8 @@ from crawler.core.basicInfo import crawlSummaryStockNoFromTWSE
 from crawler.core.report import crawlCashFlow
 from crawler.interface.basicInfo import (getStockNoBasicInfo,
                                          getSummaryStockNoServerExist)
-from crawler.interface.util import (SLEEP_TIME, companyTypes, logger,
-                                    stockerUrl, transformHeaderNoun)
+from crawler.interface.util import (SLEEP_TIME, cashflowKeySel, companyTypes,
+                                    logger, stockerUrl, transformHeaderNoun)
 
 
 def getCashFlow(
@@ -20,10 +20,6 @@ def getCashFlow(
 
     data = transformHeaderNoun(data, "cashflow")
     dataPayload = {}
-    with open('settings/data_key_select/cashflow_key_select.txt',
-            encoding='utf-8') as cashflow_key_select:
-        cashflowKeySel = set(
-            line.strip() for line in cashflow_key_select)
 
     for key in cashflowKeySel:
         try:
