@@ -1,7 +1,6 @@
-/.vscode
 __pycache__
-*.json
 /venv
-/settings
 /log
 .DS_store
+.vscode
+.env
