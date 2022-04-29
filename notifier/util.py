@@ -11,7 +11,8 @@ load_dotenv()
 HOST = os.environ.get("host-url")
 chatbotInfo = {
     'telegram-message-url': os.environ.get("telegram-message-url"),
-    'telegram-chat-id': os.environ.get("telegram-chat-id")
+    'telegram-chat-id': os.environ.get("telegram-chat-id"),
+    'slack': os.environ.get("slack-hook")
 }
 
 with open('configs/critical_info_filter.json') as criticalInfoReader:
@@ -136,10 +137,8 @@ def toStringExchageType(exchangeType='sii'):
     return tp
 
 def pushSlackMessage(username, content):
-    with open('settings/critical_file/chatbot_info.json') as webhookReader:
-        chatbotInfo = json.loads(webhookReader.read())
     requests.post(
-        chatbotInfo['slack']['slack'],
+        chatbotInfo['slack'],
         data=json.dumps({
             "username": username,
             "text": content
