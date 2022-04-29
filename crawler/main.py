@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 import requests
 
-from notifier.notifierUtil import pushSlackMessage
+from notifier.util import pushSlackMessage
 from crawler.interface.util import SLEEP_TIME, companyTypes, stockerUrl, webhook
 from crawler.interface.basicInfo import updateDelistedCompany, getBasicInfo
 from crawler.interface.general import updateDailyPrice

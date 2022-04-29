@@ -1,17 +1,26 @@
-from cgi import print_form
 import json
-import requests
+import os
 import re
 from datetime import datetime
+
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+HOST = os.environ.get("host-url")
+chatbotInfo = {
+    'telegram-message-url': os.environ.get("telegram-message-url"),
+    'telegram-chat-id': os.environ.get("telegram-chat-id")
+}
+
+with open('configs/critical_info_filter.json') as criticalInfoReader:
+    criticalInfo = json.loads(criticalInfoReader.read())
 
 def postStockerAnnouncement(infoList):
     """
     Post every critical information to stocker server
     """
-    with open('settings/critical_file/host.json') as hostReader:
-        criticalInfo = json.loads(hostReader.read())
-    HOST = criticalInfo['HOST']
-
     for info in infoList:
         url = f"{HOST}/api/v0/feed/{info['股號']}"
         print(url)
@@ -35,9 +44,6 @@ def filterKeyword(infolist):
     - Positive keyword: add matched keyword into tags
     - Negative keyword: tag with negativeTag if there is any match
     """
-    with open('settings/critical_file/critical_info_filter.json') as criticalInfoReader:
-        criticalInfo = json.loads(criticalInfoReader.read())
-
     criteria_pos = criticalInfo["criteria_pos"]
     criteria_neg = criticalInfo["criteria_neg"]
 
@@ -58,12 +64,10 @@ def infoSender(data, debug=False):
     Post filtered critical information to telegram channel.
     Info with True negativeTag is neglected.
     """
-    with open('settings/critical_file/chatbot_info.json') as chatbotReader:
-        chatbotInfo = json.loads(chatbotReader.read())
-    postURL = chatbotInfo["telegram"]["postURL"]
-    chatID = chatbotInfo["telegram"]["chatID"]
-    parse_mode = chatbotInfo["telegram"]["parseMode"]
-    contentType = chatbotInfo["telegram"]["contentType"]
+    postURL = chatbotInfo['telegram-message-url']
+    chatID = chatbotInfo['telegram-chat-id']
+    parse_mode = "markdown"
+    contentType = "application/x-www-form-urlencoded"
 
     if debug:
         text = "This is test\n"
