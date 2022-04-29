@@ -111,7 +111,8 @@ def toMarkdown(data):
     """
     text = ""
     text += "*" + str(int(data['股號'])) + "*\t"
-    text += "*" + str(data['公司名稱']) + "*\t"
+    # to unicode asterisk(*)
+    text += "*" + re.sub("[*]", "＊", str(data['公司名稱'])) + "*\t"
     text += "(" + str(data['發言日期']) + " "
     text += "" + toStringExchageType(data['type']) + ")\n"
     text += "[" + str(data['主旨']) + "]"
