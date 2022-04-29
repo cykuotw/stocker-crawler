@@ -3,30 +3,34 @@ import logging
 import os
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
+from dotenv import load_dotenv
 
-##################
-##   Settings   ##
-##################
+#################
+##   Configs   ##
+#################
 
-with open('settings/critical_file/server_config.json') as configReader:
-    serverConf = json.loads(configReader.read())
-stockerUrl = "http://{}:{}/api/v0".format(serverConf['ip'], serverConf['port'])
+load_dotenv()
 
-with open('settings/data_key_select/income_sheet_key_select.txt',
+stockerUrl = "http://{}:{}/api/v0".format(
+    os.environ.get("server-ip"), os.environ.get("server-port"))
+
+webhook = {
+    'slack': os.environ.get("slack-hook"),
+    'stocker': os.environ.get("stocker-hook"),
+    'gugugu': os.environ.get("gugugu-hook")
+}
+
+with open('configs/data_key_select/income_sheet_key_select.txt',
         encoding='utf-8') as income_sheet_key_select:
     incomeSheetKeySel = set(line.strip() for line in income_sheet_key_select)
 
-with open('settings/data_key_select/balance_sheet_key_select.txt',
+with open('configs/data_key_select/balance_sheet_key_select.txt',
         encoding='utf-8') as balance_sheet_key_select:
     balanceSheetKeySel = set(line.strip() for line in balance_sheet_key_select)
 
-with open('settings/data_key_select/cashflow_key_select.txt',
+with open('configs/data_key_select/cashflow_key_select.txt',
         encoding='utf-8') as cashflow_key_select:
     cashflowKeySel = set(line.strip() for line in cashflow_key_select)
-
-with open('settings/critical_file/chatbot_info.json') as webhookReader:
-    webhook = json.loads(webhookReader.read())
-webhook = webhook['slack']
 
 SLEEP_TIME = 11
 
