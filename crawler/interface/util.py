@@ -81,7 +81,7 @@ def transformHeaderNoun(data, fileName):
         "cashflow": "index"
     }
 
-    with open('settings/noun_conversion/%s.json' % fileName,
+    with open('configs/noun_conversion/%s.json' % fileName,
              encoding='utf-8') as converFile:
         nounConvers = json.loads(converFile.read())
 
