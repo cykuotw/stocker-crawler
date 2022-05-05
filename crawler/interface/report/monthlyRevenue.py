@@ -6,6 +6,17 @@ from crawler.interface.util import stockerUrl, transformHeaderNoun
 
 
 def getMonthlyRevenue(westernYearIn=2013, monthIn=1):
+    """
+    @Description:
+        更新所有上市/上櫃公司月營收\n
+        Update monthly revenue of all sii/otc companies to
+        stocker server\n
+    @Param:
+        westernYearIn => int (western year)
+        seasonIn => int (1, 2, 3, 4)
+    @Return:
+        N/A
+    """
     # year, month: start at 2013, 1
     data = crawlMonthlyRevenue(westernYearIn, monthIn)
     data = transformHeaderNoun(data, 'month_revenue')

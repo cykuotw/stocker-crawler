@@ -5,12 +5,14 @@ import feedparser
 
 def crawlRSSCompanyNews(companyID):
     """
-    @description:
-        爬取各股每日新聞
-    @return:
-
-    @param:
+    @Description:
+        爬取各股每日新聞\n
+        Crawl daily news of all stocks\n
+        ** Under Construction **
+    @Param:
         companyID => int
+    @Return:
+        list (news in json)
     """
 
     coID = str(companyID)

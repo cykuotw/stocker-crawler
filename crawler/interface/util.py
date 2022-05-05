@@ -55,19 +55,21 @@ logger.addHandler(fileHandler)
 ###########################
 
 def transformHeaderNoun(data, fileName):
-    """this method is used to transefer header noun.
+    """
+    @Description
+        This method is used to transefer header noun.
 
-    Use receive fileName to get noun_conversion file,
-    and use direction going to decide to replace the columns or index.
+        Use receive fileName to get noun_conversion file,
+        and use direction going to decide to replace the columns or index.
 
-    Args:
-        data: dataframe from crawler.
-        file: a string of noun_conversion file.
+    @Param:
+        data => Dataframe from crawler.\n
+        file => string (name of noun_conversion file)
 
-    Return:
-        dataframe
+    @Return:
+        Dataframe (transferred data)
 
-    Raises:
+    @Raises:
         Exception: An error occurred.
     """
     if data is None:

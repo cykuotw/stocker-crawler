@@ -12,12 +12,13 @@ SLEEPTIME = 10
 
 def crawlBasicInformation(companyType):
     """
-    @description:
-        爬取上市/上櫃/興櫃/公開發行個股的基本資料
-    @return:
-        dataFrame (sorted basicInfo)
-    @param:
+    @Description:
+        爬取上市/上櫃/興櫃/公開發行個股的基本資料\n
+        Crawl basic information of all sii/otc/rotc/pub companies.
+    @Parameter:
         companyType => string("sii", "otc", "rotc", "pub")
+    @Return:
+        dataFrame (sorted basicInfo)
     """
     url = "https://mops.twse.com.tw/mops/web/ajax_t51sb01"
     headers = {
@@ -54,8 +55,19 @@ def crawlBasicInformation(companyType):
 
 
 def crawlDelistedCompany(companyType):
+    """
+    @Description:
+        爬取上市/上櫃個股的下市資訊\n
+        Crawl basic information of all sii/otc/rotc/pub companies.
+    @Parameter:
+        companyType => string("sii", "otc")
+    @Return:
+        list (delisted company ID)
+    """
     currentYear = datetime.now().year
     lastYear = currentYear - 1
+    res = []
+
     if companyType == 'sii':
         url = 'https://www.twse.com.tw/company/suspendListingCsvAndHtml\
             ?type=html&lang=zh'
@@ -68,9 +80,9 @@ def crawlDelistedCompany(companyType):
         html_dfCurr = pd.read_html(StringIO(resultCurrent.text), header=1)
         html_dfLast = pd.read_html(StringIO(resultLast.text), header=1)
         html_df = pd.concat([html_dfCurr[0], html_dfLast[0]])
-        # html_df.drop(["終止上市日期", "公司名稱"], axis=1, inplace=True)
 
-        return html_df['上市編號'].values.tolist()
+        res = html_df['上市編號'].values.tolist()
+
     elif companyType == 'otc':
         url = 'https://www.tpex.org.tw/web/regular_emerging/deListed/de-listed_companies.php?l=zh-tw'
         headers = {
@@ -98,27 +110,26 @@ def crawlDelistedCompany(companyType):
         html_dfCurr = pd.read_html(StringIO(resultCurrent.text), header=0)
         html_dfLast = pd.read_html(StringIO(resultLast.text), header=0)
         html_df = pd.concat([html_dfCurr[0], html_dfLast[0]])
-        return html_df['股票代號'].values.tolist()
+        
+        res = html_df['股票代號'].values.tolist()
+
+    return res
 
 def crawlSummaryStockNoFromTWSE(
         reportTypes='income_sheet',
         companyType='sii',
         westernYearIn=2019,
         seasonIn=3):
-    """this method is used to crawler entire income sheet stock number.
-    According to the received parameter type, westernYearIn and seasonIn,
-    Go to the specific website and crawler stock number
-    that has released the income sheet.
-
-    Args:
-        type: a string of stock(sii, otc)
-        westernYearIn: Year of the West
+    """
+    @Description:
+        Crawl entire stock id for entire finance report.
+    @Parameters:
+        companyType: string(sii, otc)
+        westernYearIn: western year
         seasonIn: Financial quarter(1, 2, 3, 4)
-
-    Return:
-        result: a list with stock numbers inside
-
-    Raises:
+    @Return:
+        list (entire stock id)
+    @Raises:
         Exception: no table in request result or others things.
     """
     season = str(seasonIn).zfill(2)

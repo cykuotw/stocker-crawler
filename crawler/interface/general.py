@@ -7,6 +7,17 @@ from crawler.interface.util import stockerUrl
 
 
 def updateDailyPrice(datetimeIn=datetime.now()):
+    """
+    @Description:
+        更新所有上市/上櫃公司每日股價\n
+        Update daily stock price of all sii/otc companies to
+        stocker server\n
+    @Param:
+        datetimeIn => datetime.datetime
+    @Return:
+        N/A
+    """
+
     data = crawlDailyPrice(datetimeIn)
     stockTypes = ['sii', 'otc']
     for stockType in stockTypes:

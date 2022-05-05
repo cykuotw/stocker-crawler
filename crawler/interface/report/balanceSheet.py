@@ -12,8 +12,19 @@ from crawler.interface.util import (SLEEP_TIME, balanceSheetKeySel,
                                     transformHeaderNoun)
 
 
-def getBalanceSheet(
-        companyID=2330, westernYearIn=2019, seasonIn=2):
+def getBalanceSheet(companyID=2330, westernYearIn=2019, seasonIn=2):
+    """
+    @Description:
+        爬取及更新個別上市/上櫃公司資產負債表\n
+        Crawl and update balance sheet of single sii/otc company
+    @Param:
+        companyID => int (stock id)
+        westernYearIn => int (western year)
+        seasonIn => int (1, 2, 3, 4)
+    @Return:
+        dict (stock id & status)
+    """
+    
     try:
         data = crawlBalanceSheet(companyID, westernYearIn, seasonIn)
     except ConnectionError as ce:
@@ -49,6 +60,20 @@ def getBalanceSheet(
 
 
 def updateBalanceSheet(westernYearIn=2019, season=1):
+    """
+    @Description:
+        更新所有上市/上櫃公司資產負債表\n
+        Update balance sheet of all sii/otc companies to
+        stocker server\n
+        1. Get list should be updated
+        2. Update balance sheet of each company with getBalanceSheet
+    @Param:
+        westernYearIn => int (western year)
+        seasonIn => int (1, 2, 3, 4)
+    @Return:
+        N/A
+    """
+
     existStockNo = getSummaryStockNoServerExist(
         westernYearIn, season, 'balance_sheet')
     validStockNo = getStockNoBasicInfo()

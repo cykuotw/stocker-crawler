@@ -6,12 +6,13 @@ import requests
 
 def crawlDailyPrice(dateTime):
     """
-    @description:
-        爬取上市/上櫃每日股價，並以dict回傳
-    @return:
-        dataFrame in Dictionary (access with "sii", "otc")
-    @param:
-        datetime => datetime
+    @Description:
+        爬取上市/上櫃每日股價\n
+        Crawl daily stock price of sii/otc
+    @Param:
+        datetime => datetime.datetime
+    @Return:
+        dataFrame in dict (access with "sii", "otc")
     """
     dateSii = dateTime.strftime("%Y%m%d")
     # dateSii = '"' + "20190909" + '"'
@@ -60,12 +61,14 @@ def crawlDailyPrice(dateTime):
 
 def crawlShareholderCount(companyID, datetime):
     """
-    @description:
-        爬取千張持股股東人數，通常在週五
-    @return:
-        dataFrame
-    @param:
-        datetime => datetime
+    @Description:
+        爬取千張持股股東人數，通常在週五\n
+        Crawl shareholder count
+    @Param:
+        companyID => int\n
+        datetime => datetime.datetime
+    @Return:
+        Dataframe (shareholder count)
     """
     coID = str(companyID)
     date = datetime.strftime("%Y%m%d")

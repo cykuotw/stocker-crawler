@@ -11,8 +11,19 @@ from crawler.interface.util import (SLEEP_TIME, cashflowKeySel, companyTypes,
                                     logger, stockerUrl, transformHeaderNoun)
 
 
-def getCashFlow(
-        companyID=2330, westernYearIn=2019, seasonIn=2):
+def getCashFlow(companyID=2330, westernYearIn=2019, seasonIn=2):
+    """
+    @Description:
+        爬取及更新個別上市/上櫃公司現金流量表\n
+        Crawl and update quarterly cashflow of single sii/otc company
+    @Param:
+        companyID => int (stock id)
+        westernYearIn => int (western year)
+        seasonIn => int (1, 2, 3, 4)
+    @Return:
+        dict (stock id & status)
+    """      
+
     try:
         data = crawlCashFlow(companyID, westernYearIn, seasonIn)
     except Exception as e:
@@ -58,6 +69,20 @@ def getCashFlow(
 
 
 def updateCashFlow(westernYearIn=2019, season=1):
+    """
+    @Description:
+        更新所有上市/上櫃公司現金流量表\n
+        Update cashflow of all sii/otc companies to
+        stocker server\n
+        1. Get list should be updated
+        2. Update cashflow of each company with getCashFlow
+    @Param:
+        westernYearIn => int (western year)
+        seasonIn => int (1, 2, 3, 4)
+    @Return:
+        N/A
+    """
+
     existStockNo = getSummaryStockNoServerExist(
         westernYearIn, season, 'cashflow')
     validStockNo = getStockNoBasicInfo()

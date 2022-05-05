@@ -16,6 +16,17 @@ from crawler.interface.util import (SLEEP_TIME, companyTypes,
 
 
 def getIncomeSheet(companyID=1101, westernYearIn=2019, seasonIn=1):
+    """
+    @Description:
+        爬取及更新個別上市/上櫃公司綜合損益表\n
+        Crawl and update quarterly income sheet of single sii/otc company
+    @Param:
+        companyID => int (stock id)
+        westernYearIn => int (western year)
+        seasonIn => int (1, 2, 3, 4)
+    @Return:
+        dict (stock id & status)
+    """      
     try:
         data = crawlIncomeSheet(companyID, westernYearIn, seasonIn)
     except ConnectionError as ce:
@@ -115,6 +126,20 @@ def getIncomeSheet(companyID=1101, westernYearIn=2019, seasonIn=1):
         return {"stock_id": companyID, "status": res.status_code}
 
 def updateIncomeSheet(westernYearIn=2019, season=1):
+    """
+    @Description:
+        更新所有上市/上櫃公司綜合損益表\n
+        Update income sheet of all sii/otc companies to
+        stocker server\n
+        1. Get list should be updated
+        2. Update income sheet of each company with getIncomeSheet
+    @Param:
+        westernYearIn => int (western year)
+        seasonIn => int (1, 2, 3, 4)
+    @Return:
+        N/A
+    """
+
     existStockNo = getSummaryStockNoServerExist(
         westernYearIn, season, 'income_sheet')
     validStockNo = getStockNoBasicInfo()

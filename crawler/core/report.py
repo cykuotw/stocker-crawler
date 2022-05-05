@@ -11,14 +11,16 @@ SLEEPTIME = 10
 
 def crawlMonthlyRevenue(westernYearIn, monthIn):
     """
-    @description:
-        爬取上市/上櫃公司月營收
-    @return:
-        dataFrame (sorted monthly revenue)
-    @param:
-        westernYearIn => int (西元年)
+    @Description:
+        爬取上市/上櫃公司月營收\n
+        Crawl monthly revenue of sii/otc companies
+    @Param:
+        westernYearIn => int (western year)\n
         monthIn => int
+    @Return:
+        dataFrame (sorted monthly revenue)
     """
+
     year = str(westernYearIn - 1911)
     month = str(monthIn)
 
@@ -120,15 +122,17 @@ def crawlMonthlyRevenue(westernYearIn, monthIn):
 
 def crawlBalanceSheet(companyID, westernYearIn, seasonIn):
     """
-    @description:
-        爬取個股每季的資產負債表
-    @return:
+    @Description:
+        爬取個股每季的資產負債表\n
+        Crawl quarterly balance sheet
+    @Param:
+        companyID => int\n
+        westernYearIn => int (western year) \n
+        seasonIn => int (1, 2, 3, 4) 
+    @Return:
         dataFrame (sorted balance sheet)
-    @param:
-        companyID => int
-        westernYearIn => int (西元年)
-        monthIn => int (1, 2...11, 12)
     """
+
     coID = str(companyID)
     year = str(westernYearIn - 1911)
     season = str(seasonIn)
@@ -201,15 +205,17 @@ def crawlBalanceSheet(companyID, westernYearIn, seasonIn):
 
 def crawlIncomeSheet(companyID, westernYearIn, seasonIn):
     """
-    @description:
-        爬取個股每季的損益表
-    @return:
+    @Description:
+        爬取個股每季的綜合損益表\n
+        Crawl quarterly income sheet
+    @Param:
+        companyID => int\n
+        westernYearIn => int (western year)\n
+        seasonIn => int (1, 2, 3, 4)
+    @Return:
         dataFrame (sorted income sheet)
-    @param:
-        companyID => int
-        westernYearIn => int (西元年)
-        monthIn => int (1,2...11,12)
     """
+
     coID = str(companyID)
     year = str(westernYearIn - 1911)
     season = str(seasonIn).zfill(2)
@@ -288,16 +294,18 @@ def crawlIncomeSheet(companyID, westernYearIn, seasonIn):
 
 def crawlCashFlow(companyID, westernYearIn, seasonIn, recursiveBreak=False):
     """
-    @description:
+    @Description:
         爬取個股每季的現金流量表
-    @return:
-        dataFrame (sorted cash flow)
-    @param:
-        companyID => int
-        westernYearIn => int (西元年)
-        monthIn => int (1,2...11,12)
+        Crawl quarterly cashflow
+    @Param:
+        companyID => int\n
+        westernYearIn => int (western year)\n
+        seasonIn => int (1, 2, 3, 4)\n
         recursiveBreak => boolean
+    @Return:
+        dataFrame (sorted cash flow)
     """
+
     coID = str(companyID)
     year = str(westernYearIn - 1911)
     season = str(seasonIn)
@@ -393,7 +401,3 @@ def crawlCashFlow(companyID, westernYearIn, seasonIn, recursiveBreak=False):
                 pass
 
     return results
-
-
-if __name__ == '__main__':
-    print(crawlSummaryStockNoFromTWSE())

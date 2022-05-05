@@ -6,6 +6,16 @@ from crawler.interface.util import stockerUrl
 
 
 def updateStockCommodity():
+    """
+    @Description:
+        更新所有上市櫃公司每日股價\n
+        Update all sii/otc daily price to stocker server\n
+    @Param:
+        N/A
+    @Return:
+        N/A
+    """
+
     data = crawlStockFuture()
     serverStockCommodityApi = "{}/stock_commodity".format(stockerUrl)
     for index, row in data.iterrows():
