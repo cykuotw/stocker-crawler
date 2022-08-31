@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import feedparser
 import requests
 
-from util import formatJSON
+from crawler.core.util import formatJSON
 
 # export example:
 # {

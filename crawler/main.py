@@ -12,6 +12,7 @@ from crawler.interface.general import updateDailyPrice
 from crawler.interface.derivatives import updateStockCommodity
 from crawler.interface.report.monthlyRevenue import getMonthlyRevenue
 from crawler.interface.report.incomeSheet import updateIncomeSheet
+from crawler.interface.news import updateDailyNews
 
 def dailyRoutineWork():
     # 差財報三表, shareholder可以禮拜六抓
@@ -24,6 +25,8 @@ def dailyRoutineWork():
             getBasicInfo(type)
             time.sleep(SLEEP_TIME + random.randrange(0, 4))
         updateStockCommodity()
+
+        updateDailyNews()
 
         if date.today().weekday() in [0,1,2,3,4]:
             updateDailyPrice()
@@ -51,7 +54,7 @@ def dailyRoutineWork():
                 requests.get(
                     url.format(
                         stockerUrl,
-                        'recommended_stocks',
+                        'screener',
                         queryString.format(
                             'bullish', webhook[group])
                     )
@@ -60,7 +63,7 @@ def dailyRoutineWork():
             requests.get(
                 url.format(
                     stockerUrl,
-                    'recommended_stocks',
+                    'screener',
                     queryString.format(
                         'bearish', webhook['stocker'])
                 )
@@ -70,9 +73,9 @@ def dailyRoutineWork():
                 requests.get(
                     url.format(
                         stockerUrl,
-                        'revenue_notify',
+                        'screener',
                         queryString.format(
-                            'revenue', webhook['stocker'])
+                            '月營收篩選', webhook['stocker'])
                     )
                 )
     except Exception as e:
