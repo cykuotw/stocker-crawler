@@ -1,9 +1,10 @@
-from datetime import datetime
-import requests
 import json
+from datetime import datetime
+from time import sleep
+
+import requests
 from crawler.core.news import crawlNewsCnyes
 from crawler.interface.util import stockerUrl
-from crawler.core.util import formatJSON
 
 
 def updateDailyNews(datetimeIn=datetime.today()):
@@ -21,28 +22,26 @@ def updateDailyNews(datetimeIn=datetime.today()):
     # Get News
     marketList = ["tw", "us"]
 
-    newsData = {
-        'data_count': '0',
-        'data': []
-    }
     count = 0
+    data = []
     for market in marketList:
         tmp = crawlNewsCnyes(datetimeIn, market)
         for index in range(int(tmp['data_count'])):
-            if tmp['data'][index] not in newsData['data']:
+            if tmp['data'][index] not in data:
                 count += 1
-                newsData['data'].append(tmp['data'][index])
-    newsData['data_count'] = count
+                data.append(tmp['data'][index])
 
     if count == 0:
         return
 
     # Update to stocker server
     newsApi = "{url}/feed?date={datestr}".format(url=stockerUrl, datestr=datetimeIn.strftime("%Y-%m-%d"))
-    try:
-        requests.post(newsApi, data=json.dumps(newsData))
-    except Exception as ex:
-        print("ERROR: {}".format(ex))
+    for index in range(count):
+        try:
+            requests.post(newsApi, data=json.dumps(data[index]))
+            sleep(0.01)
+        except Exception as ex:
+            print("ERROR: {}".format(ex))
     
 if __name__ == '__main__':
     updateDailyNews()
