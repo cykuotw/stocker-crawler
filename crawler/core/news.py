@@ -12,10 +12,13 @@ from crawler.core.util import formatJSON
 #     "data_count": "1",
 #     "data":[
 #         {
-#             "newsUrl": "example.com.tw/5566789",
-#             "related_stocks": [
+#             "link": "example.com.tw/5566789",
+#             "stock_id": [
 #              "2330", "2454" ...
-#             ]
+#             ],
+#             "title": "blahblahblahblah",
+#             "source": "cynes",
+#             "releaseTime": 1662024303 //sec from 1970/1/1
 #         },
 #         ...
 #     ]
@@ -111,6 +114,8 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
         for index in range(length):
             element = jsdata['items']['data'][index]
             newsid = element['newsId']
+            title = element['title']
+            releaseTime = element['publishAt']
             newsUrl = "https://news.cnyes.com/news/id/{id}".format(id=newsid)
 
             stock_id = []
@@ -125,8 +130,11 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
                 dataCount += 1
 
                 tmp = {}
-                tmp["newUrl"] = newsUrl
-                tmp["related_stocks"] = stock_id
+                tmp['link'] = newsUrl
+                tmp['stock_id'] = stock_id
+                tmp['title'] = title
+                tmp['source'] = 'cnyes'
+                tmp['releaseTime'] = releaseTime
                 data.append(tmp)
 
     res = {}

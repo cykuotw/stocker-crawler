@@ -3,6 +3,7 @@ import requests
 import json
 from crawler.core.news import crawlNewsCnyes
 from crawler.interface.util import stockerUrl
+from crawler.core.util import formatJSON
 
 
 def updateDailyNews(datetimeIn=datetime.today()):
@@ -37,7 +38,7 @@ def updateDailyNews(datetimeIn=datetime.today()):
         return
 
     # Update to stocker server
-    newsApi = "{url}/feeds/{datestr}".format(url=stockerUrl, datestr=datetimeIn.strftime("%Y%m%d"))
+    newsApi = "{url}/feed?date={datestr}".format(url=stockerUrl, datestr=datetimeIn.strftime("%Y-%m-%d"))
     try:
         requests.post(newsApi, data=json.dumps(newsData))
     except Exception as ex:
