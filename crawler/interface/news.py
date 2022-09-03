@@ -35,7 +35,8 @@ def updateDailyNews(datetimeIn=datetime.today()):
         return
 
     # Update to stocker server
-    newsApi = "{url}/feed?date={datestr}".format(url=stockerUrl, datestr=datetimeIn.strftime("%Y-%m-%d"))
+    newsApi = "{url}/feed?date={datestr}".format(url=stockerUrl, datestr=datetimeIn.isoformat())
+    print(newsApi)
     for index in range(count):
         try:
             requests.post(newsApi, data=json.dumps(data[index]))
