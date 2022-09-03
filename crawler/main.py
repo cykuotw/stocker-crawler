@@ -60,7 +60,7 @@ def dailyRoutineWork():
                     )
                 )
 
-            for filter in ['bearish', '月營收半年新高', '月營收半年新低', '財報偏多選股']:
+            for filter in ['月營收半年新高', '月營收半年新低', '財報偏多選股']:
                 requests.get(
                     url.format(
                         stockerUrl,
@@ -74,7 +74,7 @@ def dailyRoutineWork():
                 requests.get(
                     url.format(
                         stockerUrl,
-                        'screener',
+                        'screener', 
                         queryString.format(
                             '月營收篩選', webhook['stocker'])
                     )
