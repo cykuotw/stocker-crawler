@@ -60,14 +60,15 @@ def dailyRoutineWork():
                     )
                 )
 
-            requests.get(
-                url.format(
-                    stockerUrl,
-                    'screener',
-                    queryString.format(
-                        'bearish', webhook['stocker'])
-                )
-            )
+            for filter in ['bearish', '月營收半年新高', '月營收半年新低']:
+                requests.get(
+                    url.format(
+                        stockerUrl,
+                        'screener',
+                        queryString.format(
+                            filter, webhook['stocker'])
+                    )
+                )      
             
             if (datetime.now().month in (1, 4, 7, 10)):
                 requests.get(
