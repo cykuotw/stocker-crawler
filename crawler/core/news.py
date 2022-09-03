@@ -132,10 +132,14 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
 
                 tmp = {}
                 tmp['link'] = newsUrl
-                tmp['stock_id'] = stock_id
+                tmp['stocks'] = stock_id
                 tmp['title'] = title
                 tmp['source'] = 'cnyes'
                 tmp['releaseTime'] = releaseTime.isoformat()
+                tmp['feedType'] = 'news'
+                tmp['tags'] = []
+                tmp['description'] = ''
+
                 data.append(tmp)
 
     res = {}
