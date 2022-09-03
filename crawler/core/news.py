@@ -116,6 +116,7 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
             newsid = element['newsId']
             title = element['title']
             releaseTime = element['publishAt']
+            releaseTime = epochTime + timedelta(seconds=releaseTime)
             newsUrl = "https://news.cnyes.com/news/id/{id}".format(id=newsid)
 
             stock_id = []
@@ -134,7 +135,7 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
                 tmp['stock_id'] = stock_id
                 tmp['title'] = title
                 tmp['source'] = 'cnyes'
-                tmp['releaseTime'] = releaseTime
+                tmp['releaseTime'] = releaseTime.isoformat()
                 data.append(tmp)
 
     res = {}
