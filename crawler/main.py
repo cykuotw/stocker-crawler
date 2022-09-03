@@ -60,7 +60,7 @@ def dailyRoutineWork():
                     )
                 )
 
-            for filter in ['bearish', '月營收半年新高', '月營收半年新低']:
+            for filter in ['bearish', '月營收半年新高', '月營收半年新低', '財報偏多選股']:
                 requests.get(
                     url.format(
                         stockerUrl,
