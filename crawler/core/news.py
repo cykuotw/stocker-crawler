@@ -1,11 +1,14 @@
 # coding=utf-8
+from ast import While
 import json
 from datetime import datetime, timedelta
+from math import fabs
 
 import feedparser
 import requests
-
+from bs4 import BeautifulSoup
 from crawler.core.util import formatJSON
+from dateutil import parser
 
 # export example:
 # {
@@ -141,6 +144,85 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
                 tmp['description'] = ''
 
                 data.append(tmp)
+
+    res = {}
+    res["data_count"] = str(dataCount)
+    res["data"] = data
+    return res
+
+
+def crawlNewsCtee(date=datetime.today()):
+    """
+    @Description:
+        爬取工商時報科技版每日新聞\n
+        Crawl daily news of tech from CTEE\n
+    @Param:
+        date => datetime (default: system current date)
+    @Return:
+        json (see example)(empty if @Param market is neither "tw", "us")
+    """
+
+    # request header
+    headers = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
+        'Content-Type': 'text/html; charset=UTF-8'
+    }
+
+    # data container
+    dataCount = 0
+    data = []
+
+    today = date.replace(hour=0, minute=0, second=0,
+                         microsecond=0, tzinfo=None)
+
+    # while loop prep
+    pageNo = 1
+    flag = True
+
+    while flag:
+        if pageNo == 1:
+            url = 'https://ctee.com.tw/category/news/tech,industry,biotech'
+        else:
+            url = 'https://ctee.com.tw/category/news/tech,industry,biotech/page/{}'.format(
+                pageNo)
+
+        page = requests.get(url, headers=headers, timeout=(2, 15))
+        article = BeautifulSoup(page.text, 'html.parser').findAll('article')
+
+        if (len(article) == 0):
+            break
+
+        for index in range(len(article)):
+            title = article[index].find('a').get('title')
+            link = article[index].find('a').get('href')
+            publishDate = parser.parse(article[index].find(
+                'time').get('datetime')).replace(tzinfo=None)
+
+            diff = publishDate - today
+            # Publish date too early, stop all process
+            if diff < timedelta(days=0):
+                flag = False
+                break
+            # Publish date within 1 day of given date
+            if diff < timedelta(days=1):
+                dataCount += 1
+
+                tmp = {}
+                tmp['link'] = link
+                tmp['stocks'] = ''
+                tmp['title'] = title
+                tmp['source'] = 'ctee'
+                tmp['releaseTime'] = publishDate.isoformat()
+                tmp['feedType'] = 'news'
+                tmp['tags'] = []
+                tmp['description'] = ''
+
+                data.append(tmp)
+            else:
+                # stop while loop
+                flag = False
+                break
+        pageNo += 1
 
     res = {}
     res["data_count"] = str(dataCount)
