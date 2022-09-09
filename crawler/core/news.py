@@ -209,7 +209,7 @@ def crawlNewsCtee(date=datetime.today()):
 
                 tmp = {}
                 tmp['link'] = link
-                tmp['stocks'] = ''
+                tmp['stocks'] = []
                 tmp['title'] = title
                 tmp['source'] = 'ctee'
                 tmp['releaseTime'] = publishDate.isoformat()
