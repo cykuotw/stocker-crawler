@@ -23,7 +23,7 @@ def postStockerAnnouncement(infoList):
     Post every critical information to stocker server
     """
     for info in infoList:
-        url = f"{HOST}/api/v0/feed/{info['股號']}"
+        url = f"{HOST}/api/v0/feed"
         print(url)
         dateArr = info['發言日期'].split('/')
         dateArr[0] = str(int(dateArr[0])+1911)
@@ -35,7 +35,9 @@ def postStockerAnnouncement(infoList):
             'releaseTime': dateTime,
             'title': info['主旨'],
             'link': info['link'],
-            'tags': info['tags']
+            'tags': info['tags'],
+            'stocks': [],
+            'source': 'mops'
         }
         requests.post(url, data=json.dumps(infoJson))
 
