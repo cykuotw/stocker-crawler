@@ -36,7 +36,7 @@ def postStockerAnnouncement(infoList):
             'title': info['主旨'],
             'link': info['link'],
             'tags': info['tags'],
-            'stocks': [],
+            'stocks': [info['股號']],
             'source': 'mops'
         }
         requests.post(url, data=json.dumps(infoJson))
