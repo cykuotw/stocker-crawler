@@ -130,20 +130,20 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
                     if 'TWS' in element['market'][i]['symbol']:
                         stock_id.append(element['market'][i]['code'])
             # check stock_id not empty
-            if len(stock_id) != 0:
-                dataCount += 1
+            # if len(stock_id) != 0:
+            dataCount += 1
 
-                tmp = {}
-                tmp['link'] = newsUrl
-                tmp['stocks'] = stock_id
-                tmp['title'] = title
-                tmp['source'] = 'cnyes'
-                tmp['releaseTime'] = releaseTime.isoformat()
-                tmp['feedType'] = 'news'
-                tmp['tags'] = []
-                tmp['description'] = ''
+            tmp = {}
+            tmp['link'] = newsUrl
+            tmp['stocks'] = stock_id
+            tmp['title'] = title
+            tmp['source'] = 'cnyes'
+            tmp['releaseTime'] = releaseTime.isoformat()
+            tmp['feedType'] = 'news'
+            tmp['tags'] = []
+            tmp['description'] = ''
 
-                data.append(tmp)
+            data.append(tmp)
 
     res = {}
     res["data_count"] = str(dataCount)
