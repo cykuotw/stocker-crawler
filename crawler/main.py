@@ -26,7 +26,6 @@ def dailyRoutineWork():
             time.sleep(SLEEP_TIME + random.randrange(0, 4))
         updateStockCommodity()
 
-        updateDailyNews()
 
         if date.today().weekday() in [0,1,2,3,4]:
             updateDailyPrice()
