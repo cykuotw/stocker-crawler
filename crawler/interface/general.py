@@ -4,6 +4,7 @@ from datetime import datetime
 import requests
 from crawler.core.general import crawlDailyPrice
 from crawler.interface.util import stockerUrl
+from notifier.util import pushSlackMessage
 
 
 def updateDailyPrice(datetimeIn=datetime.now()):
@@ -17,9 +18,17 @@ def updateDailyPrice(datetimeIn=datetime.now()):
     @Return:
         N/A
     """
+    curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+    pushSlackMessage("Stocker股價更新", '{} crawler work start.'.format(curTime))
+    
+    try:
+        data = crawlDailyPrice(datetimeIn)
+        stockTypes = ['sii', 'otc']
+    except Exception as e:
+        curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+        pushSlackMessage("Stocker股價更新", '{} work error: {}'.format(curTime, e))
+        return None
 
-    data = crawlDailyPrice(datetimeIn)
-    stockTypes = ['sii', 'otc']
     for stockType in stockTypes:
         if data[stockType] is None or data[stockType].shape[0] < 5:
             continue
@@ -70,3 +79,6 @@ def updateDailyPrice(datetimeIn=datetime.now()):
                     requests.post(dailyInfoApi, data=json.dumps(dataPayload))
                 except Exception as ex:
                     print("ERROR: {}".format(ex))
+
+    curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+    pushSlackMessage("Stocker股價更新", '{} crawler work done.'.format(curTime))

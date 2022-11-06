@@ -27,8 +27,8 @@ def dailyRoutineWork():
         updateStockCommodity()
 
 
-        if date.today().weekday() in [0,1,2,3,4]:
-            updateDailyPrice()
+        #if date.today().weekday() in [0,1,2,3,4]:
+        #   updateDailyPrice()
 
         now = datetime.now()
         if now.month == 1:
@@ -49,25 +49,16 @@ def dailyRoutineWork():
             url = "{}/{}?{}"
             queryString = 'option={}&webhook={}'
 
-            for group in ['stocker', 'gugugu']:
-                requests.get(
-                    url.format(
-                        stockerUrl,
-                        'screener',
-                        queryString.format(
-                            'bullish', webhook[group])
-                    )
-                )
-
-            for filter in ['月營收半年新高', '月營收半年新低', '財報偏多選股']:
-                requests.get(
-                    url.format(
-                        stockerUrl,
-                        'screener',
-                        queryString.format(
-                            filter, webhook['stocker'])
-                    )
-                )      
+            for filter in ['月營收半年新高', '月營收半年新低', '財報偏多選股', 'bearish']:
+                for group in ['stocker', 'gugugu']:
+                    requests.get(
+                        url.format(
+                            stockerUrl,
+                            'screener',
+                            queryString.format(
+                                filter, webhook[group])
+                        )
+                    )      
             
             if (datetime.now().month in (1, 4, 7, 10)):
                 requests.get(
