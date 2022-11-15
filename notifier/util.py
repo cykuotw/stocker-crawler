@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import pytz
 from datetime import datetime
 
 import requests
@@ -22,14 +23,15 @@ def postStockerAnnouncement(infoList):
     """
     Post every critical information to stocker server
     """
+    tw = pytz.timezone('Asia/Taipei')
     for info in infoList:
         url = f"{HOST}/api/v0/feed"
-        print(url)
         dateArr = info['發言日期'].split('/')
         dateArr[0] = str(int(dateArr[0])+1911)
         dateTime = '-'.join(dateArr) + ' ' + info['發言時間']
-        dateTime = datetime.strptime(
-            dateTime, '%Y-%m-%d %H:%M:%S').isoformat()
+        dateTime = datetime.strptime(dateTime, '%Y-%m-%d %H:%M:%S')
+        dateTime = tw.localize(dateTime)
+        dateTime = dateTime.astimezone(tz=pytz.UTC).isoformat()
         infoJson = {
             'feedType': "announcement",
             'releaseTime': dateTime,

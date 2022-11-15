@@ -37,7 +37,7 @@ def crawlDataUseBs4():
                 rowElements = rows[i].findChildren('td')
                 formVar = rowElements[5].findChildren(
                     'input')[0]['onclick'].split("'")
-                formStockNum = formVar[7]
+                formStockNum = re.sub('[a-zA-Z]', '', formVar[7])
                 formDate = formVar[5]
                 formTime = formVar[3]
                 seqNum = formVar[1]

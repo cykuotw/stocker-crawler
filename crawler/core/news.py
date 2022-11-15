@@ -1,6 +1,7 @@
 # coding=utf-8
 from ast import While
 import json
+import pytz
 from datetime import datetime, timedelta
 from math import fabs
 
@@ -173,7 +174,7 @@ def crawlNewsCtee(date=datetime.today()):
     data = []
 
     today = date.replace(hour=0, minute=0, second=0,
-                         microsecond=0, tzinfo=None)
+                         microsecond=0).astimezone(tz=pytz.UTC)
 
     # while loop prep
     pageNo = 1
@@ -196,7 +197,7 @@ def crawlNewsCtee(date=datetime.today()):
             title = article[index].find('a').get('title')
             link = article[index].find('a').get('href')
             publishDate = parser.parse(article[index].find(
-                'time').get('datetime')).replace(tzinfo=None)
+                'time').get('datetime')).astimezone(tz=pytz.UTC)
 
             diff = publishDate - today
             # Publish date too early, stop all process

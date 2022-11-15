@@ -16,7 +16,7 @@ try:
         print("No critical info.")
     else:
         postStockerAnnouncement(data)
-        if datetime.now().hour >= 21 and datetime.now().hour <= 22:
+        if datetime.now().hour >= 20 and datetime.now().hour <= 22:
             infoSender(data, False)
 except Exception as e:
     curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")

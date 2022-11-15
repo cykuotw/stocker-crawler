@@ -20,11 +20,11 @@ def dailyRoutineWork():
     pushSlackMessage("Stocker日常工作", '{} crawler work start.'.format(curTime))
 
     try:
-        updateDelistedCompany()
-        for type in companyTypes:
-            getBasicInfo(type)
-            time.sleep(SLEEP_TIME + random.randrange(0, 4))
-        updateStockCommodity()
+        #updateDelistedCompany()
+        #for type in companyTypes:
+        #    getBasicInfo(type)
+        #    time.sleep(SLEEP_TIME + random.randrange(0, 4))
+        #updateStockCommodity()
 
 
         #if date.today().weekday() in [0,1,2,3,4]:
@@ -45,7 +45,7 @@ def dailyRoutineWork():
         if 10 <= now.month <= 11:
             updateIncomeSheet(now.year, 3)
 
-        if datetime.now().hour >= 21:
+        if datetime.now().hour >= 20:
             url = "{}/{}?{}"
             queryString = 'option={}&webhook={}'
 

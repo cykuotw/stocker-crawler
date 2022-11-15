@@ -44,11 +44,9 @@ def updateDailyNews(datetimeIn=datetime.today()):
 
     # Update to stocker server
     newsApi = "{url}/feed".format(url=stockerUrl)
-    print(newsApi)
     for index in range(count):
         try:
             requests.post(newsApi, data=json.dumps(data[index]))
-            sleep(0.01)
         except Exception as ex:
             print("ERROR: {}".format(ex))
 
