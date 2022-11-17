@@ -1,13 +1,15 @@
 # coding=utf-8
 from io import StringIO
+import re
+import json
 
 import pandas as pd
 import requests
 
-def crawlDailyPrice(dateTime):
+def crawlSiiDailyPrice(dateTime):
     """
     @Description:
-        爬取上市/上櫃每日股價\n
+        爬取上市每日股價\n
         Crawl daily stock price of sii/otc
     @Param:
         datetime => datetime.datetime
@@ -20,15 +22,6 @@ def crawlDailyPrice(dateTime):
         + "MI_INDEX?response=html&date="\
         + dateSii + "&type=ALLBUT0999"
 
-    dateOtc = str(dateTime.year-1911) + dateTime.strftime("/%m/%d")
-    # dateOtc = str(datetime.year-1911) + "/"\
-    #     + str(datetime.month).zfill(2) + "/"\
-    #     + str(datetime.day).zfill(2)
-    # dateOtc = "108/09/09"
-    urlOtc = "https://www.tpex.org.tw/web/stock/aftertrading/"\
-        + "daily_close_quotes/stk_quote_result.php?l=zh-tw"\
-        + "&o=htm&d=" + dateOtc + "&s=0,asc,0"
-
     reqSii = requests.get(urlSii)
     reqSii.encoding = 'utf-8'
     try:
@@ -40,23 +33,31 @@ def crawlDailyPrice(dateTime):
             resultSii = None
         else:
             return ve
+    else:
+        return resultSii
 
 
+def crawlOtcDailyPrice(dateTime):
+    dateOtc = str(dateTime.year-1911) + dateTime.strftime("/%m/%d")
+    urlOtc = "https://www.tpex.org.tw/web/stock/aftertrading/"\
+        + "daily_close_quotes/stk_quote_result.php?l=zh-tw"\
+        + "&d=" + dateOtc + "&s=0,asc,0"
     reqOtc = requests.get(urlOtc)
     reqOtc.encoding = 'utf-8'
     try:
-        resultOtc = pd.read_html(StringIO(reqOtc.text))
-        resultOtc = resultOtc[0]
-        resultOtc.columns = resultOtc.columns.droplevel(0)
+        resultOtc = json.loads(reqOtc.text)["aaData"]
+        resultOtc = filter(lambda data: len(data[0])==4, resultOtc)
+        #resultOtc = pd.read_html(StringIO(reqOtc.text))
+        #resultOtc = resultOtc[0]
+        #resultOtc.columns = resultOtc.columns.droplevel(0)
     except ValueError as ve:
+        print(ve)
         if ve.args[0] == "No tables found":
             resultOtc = None
         else:
             return ve
-
-    results = {'sii': resultSii, 'otc': resultOtc}
-
-    return results
+    else:
+        return list(resultOtc)
 
 
 def crawlShareholderCount(companyID, datetime):
