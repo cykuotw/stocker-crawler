@@ -20,11 +20,11 @@ def dailyRoutineWork():
     pushSlackMessage("Stocker日常工作", '{} crawler work start.'.format(curTime))
 
     try:
-        #updateDelistedCompany()
-        #for type in companyTypes:
-        #    getBasicInfo(type)
-        #    time.sleep(SLEEP_TIME + random.randrange(0, 4))
-        #updateStockCommodity()
+        updateDelistedCompany()
+        for type in companyTypes:
+            getBasicInfo(type)
+            time.sleep(SLEEP_TIME + random.randrange(0, 4))
+        updateStockCommodity()
 
 
         #if date.today().weekday() in [0,1,2,3,4]:
@@ -49,7 +49,7 @@ def dailyRoutineWork():
             url = "{}/{}?{}"
             queryString = 'option={}&webhook={}'
 
-            for filter in ['月營收半年新高', '月營收半年新低', '財報偏多選股', 'bearish']:
+            for filter in ['月營收半年新高', '月營收半年新低', '單季營收篩選', '財報偏多選股', 'bearish']:
                 for group in ['stocker', 'gugugu']:
                     requests.get(
                         url.format(
