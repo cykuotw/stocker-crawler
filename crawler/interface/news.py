@@ -3,6 +3,7 @@ from datetime import datetime
 from time import sleep
 
 import requests
+from notifier.util import pushSlackMessage
 from crawler.core.news import crawlNewsCnyes, crawlNewsCtee
 from crawler.interface.util import stockerUrl
 
@@ -21,23 +22,29 @@ def updateDailyNews(datetimeIn=datetime.today()):
 
     count = 0
     data = []
+    
+    try:
+        # Get CNYES News
+        marketList = ["tw", "us"]
 
-    # Get CNYES News
-    marketList = ["tw", "us"]
+        for market in marketList:
+            tmp = crawlNewsCnyes(datetimeIn, market)
+            for index in range(int(tmp['data_count'])):
+                if tmp['data'][index] not in data:
+                    count += 1
+                    data.append(tmp['data'][index])
+    except Exception as ex:
+        pushSlackMessage("Stocker新聞抓取", 'CNYES crawler work error: {}'.format(ex))
 
-    for market in marketList:
-        tmp = crawlNewsCnyes(datetimeIn, market)
+    try:
+        # Get Ctee News
+        tmp = crawlNewsCtee(datetimeIn)
         for index in range(int(tmp['data_count'])):
             if tmp['data'][index] not in data:
                 count += 1
                 data.append(tmp['data'][index])
-
-    # Get Ctee News
-    tmp = crawlNewsCtee(datetimeIn)
-    for index in range(int(tmp['data_count'])):
-        if tmp['data'][index] not in data:
-            count += 1
-            data.append(tmp['data'][index])
+    except Exception as ex:
+        pushSlackMessage("Stocker新聞抓取", 'CTEE crawler work error: {}'.format(ex))
 
     if count == 0:
         return
