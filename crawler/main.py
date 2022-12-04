@@ -49,7 +49,7 @@ def dailyRoutineWork():
             url = "{}/{}?{}"
             queryString = 'option={}&webhook={}'
 
-            for filter in ['月營收半年新高', '月營收半年新低', '單季營收篩選', '財報偏多選股', 'bearish']:
+            for filter in ['月營收半年新高', '月營收半年新低', '財報偏多選股', 'bearish']:
                 for group in ['stocker', 'gugugu']:
                     requests.get(
                         url.format(
@@ -66,7 +66,7 @@ def dailyRoutineWork():
                         stockerUrl,
                         'screener', 
                         queryString.format(
-                            '月營收篩選', webhook['stocker'])
+                            '單季營收篩選', webhook['stocker'])
                     )
                 )
     except Exception as e:

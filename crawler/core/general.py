@@ -47,15 +47,14 @@ def crawlOtcDailyPrice(dateTime):
     try:
         resultOtc = json.loads(reqOtc.text)["aaData"]
         resultOtc = filter(lambda data: len(data[0])==4, resultOtc)
-        #resultOtc = pd.read_html(StringIO(reqOtc.text))
-        #resultOtc = resultOtc[0]
-        #resultOtc.columns = resultOtc.columns.droplevel(0)
     except ValueError as ve:
         print(ve)
         if ve.args[0] == "No tables found":
             resultOtc = None
         else:
-            return ve
+            raise ve
+    except Exception as ex:
+        raise ex
     else:
         return list(resultOtc)
 

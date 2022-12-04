@@ -25,6 +25,7 @@ def updateSiiDailyPrice(datetimeIn=datetime.now()):
     for id in stockIDs:
         try:
             dataStock = data.loc[data['證券代號'] == id]
+            print(dataStock)
         except Exception as ex:
             print(ex)
             break
@@ -45,8 +46,7 @@ def updateSiiDailyPrice(datetimeIn=datetime.now()):
         except IndexError as ie:
             print("%s get into IndexError with %s"% (id, ie))
         except Exception as ex:
-            print(ex)
-            print("{}: {}".format(id, dataStock))
+            print("{} {}: {}".format(id, dataStock))
         else:
             try:
                 requests.post(dailyInfoApi, data=json.dumps(dataPayload))
@@ -78,13 +78,11 @@ def updateOtcDailyPrice(datetimeIn=datetime.now()):
             else:
                 dataPayload['本日漲跌'] = float(stock_price[3])
         except ValueError as ve:
-            print(stock_price)
             print("%s get into ValueError with %s"% (id, ve))
         except IndexError as ie:
             print("%s get into IndexError with %s"% (id, ie))
         except Exception as ex:
-            print(ex)
-            print("{}: {}".format(id, dataStock))
+            print("{} {}: {}".format(id, dataStock, ex))
         else:
             try:
                 res = requests.post(dailyInfoApi, data=json.dumps(dataPayload))
