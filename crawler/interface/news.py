@@ -4,7 +4,7 @@ from time import sleep
 
 import requests
 from notifier.util import pushSlackMessage
-from crawler.core.news import crawlNewsCnyes, crawlNewsCtee
+from crawler.core.news import crawlNewsCnyes, crawlNewsCtee, crawlNewsUdn
 from crawler.interface.util import stockerUrl
 
 
@@ -45,6 +45,19 @@ def updateDailyNews(datetimeIn=datetime.today()):
                 data.append(tmp['data'][index])
     except Exception as ex:
         pushSlackMessage("Stocker新聞抓取", 'CTEE crawler work error: {}'.format(ex))
+
+    try:
+        # Get Udn News
+        newsList = ["stock/head", "stock/sii", "stock/otc",
+                        "ind/head", "int/head"]
+        for news in newsList:
+            tmp = crawlNewsUdn(news)
+            for index in range(int(tmp['data_count'])):
+                if tmp['data'][index] not in data:
+                    count += 1
+                    data.append(tmp['data'][index])
+    except Exception as ex:
+        pushSlackMessage("Stocker新聞抓取", 'UDN crawler work error: {}'.format(ex))
 
     if count == 0:
         return

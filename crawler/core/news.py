@@ -1,15 +1,15 @@
 # coding=utf-8
-from ast import While
 import json
-import pytz
 from datetime import datetime, timedelta
-from math import fabs
 
+import gc
 import feedparser
+import pytz
 import requests
 from bs4 import BeautifulSoup
+from dateutil import parser, tz
+
 from crawler.core.util import formatJSON
-from dateutil import parser
 
 # export example:
 # {
@@ -22,7 +22,7 @@ from dateutil import parser
 #             ],
 #             "title": "blahblahblahblah",
 #             "source": "cynes",
-#             "releaseTime": 1662024303 //sec from 1970/1/1
+#             "releaseTime": 2022-12-22T14:35:06 // iso format
 #         },
 #         ...
 #     ]
@@ -160,7 +160,7 @@ def crawlNewsCtee(date=datetime.today()):
     @Param:
         date => datetime (default: system current date)
     @Return:
-        json (see example)(empty if @Param market is neither "tw", "us")
+        json (see example)
     """
 
     # request header
@@ -224,6 +224,121 @@ def crawlNewsCtee(date=datetime.today()):
                 flag = False
                 break
         pageNo += 1
+
+    res = {}
+    res["data_count"] = str(dataCount)
+    res["data"] = data
+    return res
+
+
+def crawlNewsUdn(newsType="stock/head"):
+    """
+    @Description:
+        爬取經濟日報產業版每日新聞\n
+        Crawl daily news of tech from CTEE\n
+    @Param:
+        newsType => string (default: "stock/head")
+                        "stock/head": stock headline news
+                        "stock/sii": stock listed section
+                        "stock/otc": stock otc section
+                        "ind/head": industrial headline news
+                        "int/head": international headline news
+
+    @Return:
+        json (see example)(empty if @Param newsType is not in the list)
+    """
+    gc.enable()
+    # Assume machine timezone is CST
+
+    if newsType not in ["stock/head", "stock/sii", "stock/otc",
+                        "ind/head", "int/head"]:
+        json.dumps({})
+
+    # request header
+    headers = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
+        'Content-Type': 'text/html; charset=UTF-8'
+    }
+
+    # data container
+    dataCount = 0
+    data = []
+
+    # time
+    today = datetime.now(tz=tz.gettz('Asia/Taipei')).replace(
+        tzinfo=tz.gettz('Asia/Taipei'))
+    todayTmp = today
+    prevTmp = today
+    print(today)
+
+    # while loop prep
+    pageNo = 1
+    flag = True
+
+    while flag and pageNo < 100:
+        url = ""
+        if newsType == "stock/head":
+            url = "https://money.udn.com/money/get_article/{page}/1001/5590/5607".format(
+                page=pageNo)
+        elif newsType == "stock/sii":
+            url = "https://money.udn.com/money/get_article/{page}/1001/5590/5710".format(
+                page=pageNo)
+        elif newsType == "stock/otc":
+            url = "https://money.udn.com/money/get_article/{page}/1001/5590/11074".format(
+                page=pageNo)
+        elif newsType == "ind/head":
+            url = "https://money.udn.com/money/get_article/{page}/1001/5591/5612".format(
+                page=pageNo)
+        elif newsType == "int/head":
+            url = "https://money.udn.com/money/get_article/{page}/1001/5588/5599".format(
+                page=pageNo)
+
+        result = requests.get(url, headers, timeout=(2, 15))
+        result.encoding = 'utf-8'
+
+        li = BeautifulSoup(result.text, 'html.parser').find_all('li')
+        for index in range(len(li)):
+            title = li[index].find('a').string.strip()
+            link = "https://money.udn.com/" + li[index].find('a').get('href')
+            publishDate = todayTmp.replace(
+                hour=int(li[index].find('span').string[:2]),
+                minute=int(li[index].find('span').string[-2:]),
+                second=0, microsecond=0).astimezone(tz=pytz.UTC)
+
+            diff = today - publishDate
+            # publish time cross 12 am
+            if diff < timedelta(days=0):
+                publishDate = publishDate.replace(day=today.day-1)
+                diff = today - publishDate
+            # publish time is eariler yesterday's current time
+            if pageNo != 1 and (prevTmp-publishDate) < timedelta(days=0):
+                flag = False
+                break
+
+            if diff < timedelta(days=1):
+                dataCount += 1
+
+                tmp = {}
+                tmp['link'] = link
+                tmp['stocks'] = []
+                tmp['title'] = title
+                tmp['source'] = 'udn'
+                tmp['releaseTime'] = publishDate.isoformat()
+                tmp['feedType'] = 'news'
+                tmp['tags'] = []
+                tmp['description'] = ''
+
+                data.append(tmp)
+                prevTmp = publishDate
+                # print("{len} - {time}\t{dif}".format(
+                #     len=len(data), time=publishDate, dif=diff))
+            else:
+                flag = False
+                break
+        pageNo += 1
+
+    gc.collect()
+    gc.disable()
 
     res = {}
     res["data_count"] = str(dataCount)
