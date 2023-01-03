@@ -298,7 +298,7 @@ def crawlNewsUdn(newsType="stock/head"):
 
         li = BeautifulSoup(result.text, 'html.parser').find_all('li')
         for index in range(len(li)):
-            title = li[index].find('a').string.strip()
+            title = li[index].find('a').get('title').strip()
             link = "https://money.udn.com/" + li[index].find('a').get('href')
             publishDate = todayTmp.replace(
                 hour=int(li[index].find('span').string[:2]),
