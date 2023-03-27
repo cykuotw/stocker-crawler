@@ -109,6 +109,7 @@ def infoSender(data, debug=False):
                 text = ""
                 cnt = 0
 
+
 def toMarkdown(data):
     """
     Helper function to infoSender
@@ -123,6 +124,7 @@ def toMarkdown(data):
     text += "(%s)\n\n" % str(re.sub(r"[\(\)]+", "-", data['link']))
 
     return text
+
 
 def toStringExchageType(exchangeType='sii'):
     """
