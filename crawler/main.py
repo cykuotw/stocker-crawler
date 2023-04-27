@@ -6,6 +6,7 @@ from datetime import date, datetime
 import requests
 
 from notifier.util import pushSlackMessage
+from notifier.discord import pushDiscordLog
 from crawler.interface.util import SLEEP_TIME, companyTypes, stockerUrl, webhook
 from crawler.interface.basicInfo import updateDelistedCompany, getBasicInfo
 from crawler.interface.general import updateDailyPrice
@@ -18,6 +19,7 @@ def dailyRoutineWork():
     # 差財報三表, shareholder可以禮拜六抓
     curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     pushSlackMessage("Stocker日常工作", '{} crawler work start.'.format(curTime))
+    pushDiscordLog("Stocker日常工作", '{} crawler work start.'.format(curTime))
 
     try:
         updateDelistedCompany()
@@ -72,9 +74,11 @@ def dailyRoutineWork():
     except Exception as e:
         curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         pushSlackMessage("Stocker日常工作", '{} work error: {}'.format(curTime, e))
+        pushDiscordLog("Stocker日常工作", '{} work error: {}'.format(curTime, e))
     finally:
         curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         pushSlackMessage("Stocker日常工作", '{} crawler work done.'.format(curTime))
+        pushDiscordLog("Stocker日常工作", '{} crawler work done.'.format(curTime))
 
 
 def crawlHistoryData():

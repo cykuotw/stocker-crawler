@@ -2,11 +2,13 @@ from datetime import datetime
 
 from crawler.core.criticalInfo import crawlDataUseBs4
 from notifier.util import (filterKeyword, infoSender,
-                                   postStockerAnnouncement, pushSlackMessage)
+                           postStockerAnnouncement, pushSlackMessage)
+from notifier.discord import pushDiscordLog
 
 # data = info(False)
 curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 pushSlackMessage("Stocker每日重訊", '{} crawler work start.'.format(curTime))
+pushDiscordLog("Stocker每日重訊", '{} crawler work start.'.format(curTime))
 
 try:
     data = crawlDataUseBs4()
@@ -21,6 +23,8 @@ try:
 except Exception as e:
     curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     pushSlackMessage("Stocker每日重訊", '{} crawler error.'.format(curTime, e))
+    pushDiscordLog("Stocker每日重訊", '{} crawler error.'.format(curTime, e))
 finally:
     curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     pushSlackMessage("Stocker每日重訊", '{} crawler work done.'.format(curTime))
+    pushDiscordLog("Stocker每日重訊", '{} crawler work done.'.format(curTime))

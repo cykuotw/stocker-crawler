@@ -1,7 +1,6 @@
 from crawler.interface.priceBookRatio import handleDailyPeRatioAnalysis
-from notifier.utils import pushSlackMessage
+from notifier.util import pushSlackMessage
 from datetime import datetime
-
 
 if __name__ == '__main__':
     try:
