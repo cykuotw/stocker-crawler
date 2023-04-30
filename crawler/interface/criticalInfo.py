@@ -14,11 +14,7 @@ from notifier.util import pushTelegramMessage
 load_dotenv()
 
 HOST = os.environ.get("host-url")
-chatbotInfo = {
-    'telegram-message-url': os.environ.get("telegram-message-url"),
-    'telegram-chat-id': os.environ.get("telegram-chat-id"),
-    'slack': os.environ.get("slack-hook")
-}
+
 
 with open('configs/critical_info_filter.json') as criticalInfoReader:
     criticalInfo = json.loads(criticalInfoReader.read())
@@ -52,7 +48,7 @@ def updateCriticalInfo() -> None:
             if data[index]['主旨'].find(crn) != -1:
                 data[index]['negativeTag'] = True
                 break
-    print(data)
+
     if len(data) == 0:
         pushDiscordLog("Stocker每日重訊", '{} no data.'.format(
             datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))

@@ -31,5 +31,5 @@ def pushTelegramMessage(content: str) -> None:
             "parse_mode": "markdown",
             "text": content
         }),
-        headers={"Content-Type": "application/x-www-form-urlencoded"}
+        headers={"Content-Type": "application/json"}
     )
