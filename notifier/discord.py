@@ -1,12 +1,10 @@
 import json
 import os
-import re
-import pytz
-from datetime import datetime
 
 import requests
 from dotenv import load_dotenv
 
+load_dotenv()
 chatbotInfo = {
     'discord-logbot': os.environ.get("discord-logbot-hook"),
     'discord-criticalinfobot': os.environ.get("discord-criticalinfobot-hook")
