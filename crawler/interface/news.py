@@ -23,8 +23,10 @@ def updateDailyNews(datetimeIn=datetime.today()):
     count = 0
     data = []
 
-    currTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-    pushDiscordLog("Stocker每日新聞", "{} crawler work start".format(currTime))
+    pushSlackMessage("Stocker每日新聞", "{} crawler work start".format(
+        datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
+    pushDiscordLog("Stocker每日新聞", "{} crawler work start".format(
+        datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
 
     try:
         # Get CNYES News
@@ -37,8 +39,10 @@ def updateDailyNews(datetimeIn=datetime.today()):
                     count += 1
                     data.append(tmp['data'][index])
     except Exception as ex:
-        pushSlackMessage(
-            "Stocker每日新聞", '{} CNYES crawler work error: {}'.format(currTime, ex))
+        pushSlackMessage("Stocker每日新聞", "{} CNYES crawler work error: {}".format(
+            datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), ex))
+        pushDiscordLog("Stocker每日新聞", "{} CNYES crawler work error: {}".format(
+            datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), ex))
 
     try:
         # Get Ctee News
@@ -48,8 +52,10 @@ def updateDailyNews(datetimeIn=datetime.today()):
                 count += 1
                 data.append(tmp['data'][index])
     except Exception as ex:
-        pushSlackMessage(
-            "Stocker每日新聞", '{} CTEE crawler work error: {}'.format(currTime, ex))
+        pushSlackMessage("Stocker每日新聞", "{} CTEE crawler work error: {}".format(
+            datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), ex))
+        pushDiscordLog("Stocker每日新聞", "{} CTEE crawler work error: {}".format(
+            datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), ex))
 
     try:
         # Get Udn News
@@ -62,8 +68,10 @@ def updateDailyNews(datetimeIn=datetime.today()):
                     count += 1
                     data.append(tmp['data'][index])
     except Exception as ex:
-        pushSlackMessage(
-            "Stocker每日新聞", '{} UDN crawler work error: {}'.format(currTime, ex))
+        pushSlackMessage("Stocker每日新聞", "{} UDN crawler work error: {}".format(
+            datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), ex))
+        pushDiscordLog("Stocker每日新聞", "{} UDN crawler work error: {}".format(
+            datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), ex))
 
     if count == 0:
         return
@@ -74,10 +82,15 @@ def updateDailyNews(datetimeIn=datetime.today()):
         try:
             requests.post(newsApi, data=json.dumps(data[index]))
         except Exception as ex:
-            pushDiscordLog(
-                "Stocker每日新聞", "{} server error: {}".format(currTime, ex))
+            pushSlackMessage("Stocker每日新聞", "{} server error: {}".format(
+                datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), ex))
+            pushDiscordLog("Stocker每日新聞", "{} server error: {}".format(
+                datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), ex))
 
-    pushDiscordLog("Stocker每日新聞", "{} crawler work done".format(currTime))
+    pushSlackMessage("Stocker每日新聞", "{} crawler work done".format(
+        datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
+    pushDiscordLog("Stocker每日新聞", "{} crawler work done".format(
+        datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
 
 
 if __name__ == '__main__':
