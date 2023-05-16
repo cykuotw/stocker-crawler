@@ -15,7 +15,6 @@ load_dotenv()
 
 HOST = os.environ.get("host-url")
 
-
 with open('configs/critical_info_filter.json') as criticalInfoReader:
     criticalInfo = json.loads(criticalInfoReader.read())
 
@@ -84,13 +83,16 @@ def updateCriticalInfo() -> None:
         for index in range(len(data)):
             if data[index]['negativeTag'] or len(data[index]['tags']) == 0:
                 continue
-            content += "**" + str(int(data['股號'])) + "**\t"
+            print(data[index])
+            content += "**" + str(int(data[index]['股號'])) + "**\t"
             # to unicode asterisk(*)
-            content += "**" + re.sub("[*]", "＊", str(data['公司名稱'])) + "**\t"
-            content += "(" + str(data['發言日期']) + " "
-            content += "" + toStringExchageType(data['type']) + ")\n"
-            content += "[" + str(data['主旨']) + "]"
-            content += "(%s)\n\n" % str(re.sub(r"[\(\)]+", "-", data['link']))
+            content += "**" + \
+                re.sub("[*]", "＊", str(data[index]['公司名稱'])) + "**\t"
+            content += "(" + str(data[index]['發言日期']) + " "
+            content += "" + toStringExchageType(data[index]['type']) + ")\n"
+            content += "[" + str(data[index]['主旨']) + "]"
+            content += "(%s)\n\n" % str(re.sub(r"[\(\)]+",
+                                               "-", data[index]['link']))
 
             cnt += 1
 

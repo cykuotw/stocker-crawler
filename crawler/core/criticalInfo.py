@@ -1,12 +1,10 @@
-#coding=utf-8
-import json
+# coding=utf-8
 import re
-from io import StringIO
 from random import randint
 
-import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+
 
 def crawlDataUseBs4():
     """
@@ -29,6 +27,7 @@ def crawlDataUseBs4():
                     'TYPEK': exchangeType,
                     'step': 0
                 })
+
             soup = BeautifulSoup(res.text, 'html.parser')
             table = soup.findChildren('table')
             rows = table[1].findChildren('tr')
@@ -43,7 +42,7 @@ def crawlDataUseBs4():
                 seqNum = formVar[1]
                 title = rowElements[4].getText().replace('\r\n', '')
 
-                i = randint(1,199)
+                i = randint(1, 199)
                 urlLink = (
                     "https://mops.twse.com.tw/mops/web/t05st02?"
                     + "step=1&"
@@ -82,11 +81,15 @@ def crawlIncomeSheetFromNotification(url):
 
     revenue = int(incomeSheetText[3].split('元):')[1].replace(",", ""))
     grossProfit = incomeSheetText[4].split('元):')[1].replace(",", "")
-    grossProfit = -1 * int(grossProfit[1:-1]) if re.match('^\(\d+\)$', grossProfit) else int(grossProfit)
+    grossProfit = -1 * \
+        int(grossProfit[1:-1]) if re.match('^\(\d+\)$',
+                                           grossProfit) else int(grossProfit)
     businessInterest = incomeSheetText[5].split('元):')[1].replace(",", "")
-    businessInterest = -1 * int(businessInterest[1:-1]) if re.match('^\(\d+\)$', businessInterest) else int(businessInterest)
+    businessInterest = -1 * int(businessInterest[1:-1]) if re.match(
+        '^\(\d+\)$', businessInterest) else int(businessInterest)
     EPS = incomeSheetText[9].split('元):')[1]
-    EPS = -1 * float(EPS[1:-1]) if re.match('^\(\d+.\d+\)$', EPS) else float(EPS)
+    EPS = -1 * float(EPS[1:-1]) if re.match('^\(\d+.\d+\)$',
+                                            EPS) else float(EPS)
 
     print('營業收入: ', revenue)
     print('營業毛利: ', grossProfit)
@@ -95,8 +98,10 @@ def crawlIncomeSheetFromNotification(url):
     print('營業利益率: ', round((businessInterest/revenue)*100, 3), '%')
     print('EPS: ', EPS)
 
+
 if __name__ == '__main__':
-    crawlIncomeSheetFromNotification('https://mops.twse.com.tw/mops/web/t05st02?step=1&off=1&firstin=1&TYPEK=sii&i=174&h1740=%E5%B1%B1%E9%9A%86&h1741=2616&h1742=20210510&h1743=193928&h1744=%E6%89%BF%E8%AA%8D110%E5%B9%B4%E7%AC%AC1%E5%AD%A3%E5%90%88%E4%BD%B5%E8%B2%A1%E5%8B%99%E5%A0%B1%E8%A1%A8&h1745=1&pgname=t05st02')
+    crawlIncomeSheetFromNotification(
+        'https://mops.twse.com.tw/mops/web/t05st02?step=1&off=1&firstin=1&TYPEK=sii&i=174&h1740=%E5%B1%B1%E9%9A%86&h1741=2616&h1742=20210510&h1743=193928&h1744=%E6%89%BF%E8%AA%8D110%E5%B9%B4%E7%AC%AC1%E5%AD%A3%E5%90%88%E4%BD%B5%E8%B2%A1%E5%8B%99%E5%A0%B1%E8%A1%A8&h1745=1&pgname=t05st02')
     # data = crawlDataUseBs4()
     # print(len(data))
     # data = filterKeyword(data)
