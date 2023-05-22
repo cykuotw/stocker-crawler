@@ -69,8 +69,7 @@ def crawlDelistedCompany(companyType):
     res = []
 
     if companyType == 'sii':
-        url = 'https://www.twse.com.tw/company/suspendListingCsvAndHtml\
-            ?type=html&lang=zh'
+        url = 'https://www.twse.com.tw/company/suspendListingCsvAndHtml?type=html&lang=zh'
         resultCurrent = requests.get(
             '%s&selectYear=%d' % (url, currentYear), timeout=(2, 15))
         resultLast = requests.get(
