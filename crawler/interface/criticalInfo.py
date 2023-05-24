@@ -21,7 +21,7 @@ with open('configs/critical_info_filter.json') as criticalInfoReader:
 
 def updateCriticalInfo() -> None:
     pushDiscordLog("Stocker每日重訊", '{} crawler work start.'.format(
-    datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
+        datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
 
     try:
         # crawl raw critical info
@@ -84,12 +84,13 @@ def updateCriticalInfo() -> None:
                 continue
             content += "**" + str(int(data[index]['股號'])) + "**\t"
             # to unicode asterisk(*)
-            content += "**" + re.sub("[*]", "＊", str(data[index]['公司名稱'])) + "**\t"
+            content += "**" + \
+                re.sub("[*]", "＊", str(data[index]['公司名稱'])) + "**\t"
             content += "(" + str(data[index]['發言日期']) + " "
             content += "" + toStringExchageType(data[index]['type']) + ")\n"
             content += "[" + str(data[index]['主旨']) + "]"
-            content += "(%s)\n\n" % str(re.sub(r"[\(\)]+",
-                                            "-", data[index]['link']))
+            content += "(%s)\n\n" % re.sub(r"[ ]", "%20", re.sub(r"[\(\)]+",
+                                                                 "-", data[index]['link']))
 
             cnt += 1
 
@@ -101,6 +102,7 @@ def updateCriticalInfo() -> None:
 
     pushDiscordLog("Stocker每日重訊", '{} crawler work done.'.format(
         datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
+
 
 def toStringExchageType(exchangeType: str = 'sii') -> str:
     if exchangeType == 'sii':
