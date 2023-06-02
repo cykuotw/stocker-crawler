@@ -89,7 +89,7 @@ def updateCriticalInfo() -> None:
             content += "(" + str(data[index]['發言日期']) + " "
             content += "" + toStringExchageType(data[index]['type']) + ")\n"
             content += "[" + str(data[index]['主旨']) + "]"
-            content += "(%s)\n\n" % re.sub(r"[ ]", "%20", re.sub(r"[\(\)]+",
+            content += "(%s)\n" % re.sub(r"[ ]", "%20", re.sub(r"[\(\)]+",
                                                                  "-", data[index]['link']))
 
             cnt += 1
