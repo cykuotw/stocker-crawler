@@ -96,7 +96,7 @@ def updateCriticalInfo() -> None:
 
             if cnt == 5 or (index == len(data)-1 and cnt != 0):
                 pushDiscordInfo("Stocker每日重訊", content)
-                pushTelegramMessage(content)
+                # pushTelegramMessage(content)
                 content = ""
                 cnt = 0
 

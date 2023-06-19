@@ -28,10 +28,6 @@ def dailyRoutineWork():
             time.sleep(SLEEP_TIME + random.randrange(0, 4))
         updateStockCommodity()
 
-
-        if date.today().weekday() in [0,1,2,3,4]:
-           updateDailyPrice()
-
         now = datetime.now()
         if now.month == 1:
             getMonthlyRevenue(now.year-1, 12)
