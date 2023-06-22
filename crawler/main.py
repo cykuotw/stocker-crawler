@@ -54,8 +54,10 @@ def dailyRoutineWork():
                             stockerUrl,
                             'screener',
                             queryString.format(
-                                filter, webhook[group])
+                                filter, webhook[group]
+                            )
                         )
+                    )
             
             if (datetime.now().month in (1, 4, 7, 10)):
                 res = requests.get(
