@@ -2,7 +2,6 @@ from crawler.interface.priceBookRatio import handleDailyPeRatioAnalysis
 from notifier.util import pushSlackMessage
 from datetime import datetime
 
-
 if __name__ == '__main__':
     try:
         #date_time = datetime.strptime('2022-12-02', '%Y-%m-%d')

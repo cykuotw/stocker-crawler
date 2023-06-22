@@ -1,7 +1,7 @@
 # coding=utf-8
 import json
 from datetime import datetime, timedelta
-
+import calendar
 import gc
 import feedparser
 import pytz
@@ -269,7 +269,6 @@ def crawlNewsUdn(newsType="stock/head"):
         tzinfo=tz.gettz('Asia/Taipei'))
     todayTmp = today
     prevTmp = today
-    print(today)
 
     # while loop prep
     pageNo = 1
@@ -303,12 +302,17 @@ def crawlNewsUdn(newsType="stock/head"):
             publishDate = todayTmp.replace(
                 hour=int(li[index].find('span').string[:2]),
                 minute=int(li[index].find('span').string[-2:]),
-                second=0, microsecond=0).astimezone(tz=pytz.UTC)
+                second=0, microsecond=0).astimezone(tz=pytz.timezone('Asia/Taipei'))
 
             diff = today - publishDate
             # publish time cross 12 am
-            if diff < timedelta(days=0):
-                publishDate = publishDate.replace(day=today.day-1)
+            if pageNo > 2 and diff < timedelta(days=0):
+                if today.day-1 <=0:
+                    publishDate = publishDate.replace(
+                        month=today.month-1, 
+                        day=calendar.monthrange(today.year, today.month-1)[1])
+                else:
+                    publishDate = publishDate.replace(day=today.day-1)
                 diff = today - publishDate
             # publish time is eariler yesterday's current time
             if pageNo != 1 and (prevTmp-publishDate) < timedelta(days=0):
