@@ -12,7 +12,6 @@ chatbotInfo = {
     "slack": os.environ.get("slack-hook")
 }
 
-
 def pushSlackMessage(username: str, content: str) -> None:
     requests.post(
         url=chatbotInfo["slack"],
@@ -21,7 +20,6 @@ def pushSlackMessage(username: str, content: str) -> None:
             "text": content
         }),
         headers={"content-type": "application/json"})
-
 
 def pushTelegramMessage(content: str) -> None:
     requests.post(

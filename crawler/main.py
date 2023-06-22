@@ -27,7 +27,7 @@ def dailyRoutineWork():
             getBasicInfo(type)
             time.sleep(SLEEP_TIME + random.randrange(0, 4))
         updateStockCommodity()
-
+        
         now = datetime.now()
         if now.month == 1:
             getMonthlyRevenue(now.year-1, 12)
@@ -41,7 +41,7 @@ def dailyRoutineWork():
         if 7 <= now.month <= 9:
             updateIncomeSheet(now.year, 2)
         if 10 <= now.month <= 11:
-            updateIncomeSheet(now.year, 3)
+             updateIncomeSheet(now.year, 3)
 
         if datetime.now().hour >= 20:
             url = "{}/{}?{}"
@@ -56,10 +56,9 @@ def dailyRoutineWork():
                             queryString.format(
                                 filter, webhook[group])
                         )
-                    )
             
             if (datetime.now().month in (1, 4, 7, 10)):
-                requests.get(
+                res = requests.get(
                     url.format(
                         stockerUrl,
                         'screener', 

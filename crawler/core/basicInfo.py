@@ -76,12 +76,12 @@ def crawlDelistedCompany(companyType):
             '%s&selectYear=%d' % (url, lastYear), timeout=(2, 15))
         resultCurrent.encoding = 'utf-8'
         resultLast.encoding = 'utf-8'
+            
         html_dfCurr = pd.read_html(StringIO(resultCurrent.text), header=1)
         html_dfLast = pd.read_html(StringIO(resultLast.text), header=1)
         html_df = pd.concat([html_dfCurr[0], html_dfLast[0]])
 
         res = html_df['上市編號'].values.tolist()
-
     elif companyType == 'otc':
         url = 'https://www.tpex.org.tw/web/regular_emerging/deListed/de-listed_companies.php?l=zh-tw'
         headers = {
