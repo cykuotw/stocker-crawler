@@ -47,7 +47,7 @@ def dailyRoutineWork():
             url = "{}/{}?{}"
             queryString = 'option={}&webhook={}'
 
-            for filter in ['月營收年增率半年新高', '月營收年增率半年新低', '財報偏多選股', 'bearish']:
+            for filter in ['月營收近一年次高', '月營收年增率半年新高', '月營收年增率半年新低', '財報偏多選股']:
                 for group in ['stocker', 'gugugu']:
                     res = requests.get(
                         url.format(
