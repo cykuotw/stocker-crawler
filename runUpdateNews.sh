@@ -1,6 +1,5 @@
 #!/bin/bash
-cd ~/project/stocker-crawler
-# cd ~/stocker/stocker-crawler
+cd $(dirname "$0")
 source venv/bin/activate
 python3 newsUpdate.py
 deactivate

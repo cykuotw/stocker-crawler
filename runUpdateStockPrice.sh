@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/ec2-user/project/stocker-crawler
+cd $(dirname "$0")
 source venv/bin/activate
 python3 -c 'from crawler.interface.general import updateDailyPrice; updateDailyPrice()'
 deactivate
