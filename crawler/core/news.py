@@ -322,6 +322,9 @@ def crawlNewsUdn(newsType="stock/head"):
             if diff < timedelta(days=1):
                 dataCount += 1
 
+                publishDate = publishDate - timedelta(hours=8)
+                publishDate = publishDate.astimezone(tz=pytz.utc)
+                
                 tmp = {}
                 tmp['link'] = link
                 tmp['stocks'] = []
