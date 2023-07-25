@@ -181,6 +181,7 @@ def crawlSummaryStockNoFromTWSE(
             time.sleep(delay)
         else:
             for idx in range(1, len(html_df)):
+                html_df[idx].columns = html_df[idx].columns.str.replace(' ', '')
                 stockNums += list(html_df[idx]['公司代號'])
             break
 
