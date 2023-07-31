@@ -265,8 +265,7 @@ def crawlNewsUdn(newsType="stock/head"):
     data = []
 
     # time
-    today = datetime.now(tz=tz.gettz('Asia/Taipei')).replace(
-        tzinfo=tz.gettz('Asia/Taipei'))
+    today = datetime.now(tz=tz.gettz('Asia/Taipei'))
     todayTmp = today
     prevTmp = today
 
@@ -309,7 +308,7 @@ def crawlNewsUdn(newsType="stock/head"):
             if pageNo > 2 and diff < timedelta(days=0):
                 if today.day-1 <=0:
                     publishDate = publishDate.replace(
-                        month=today.month-1, 
+                        month=today.month-1,
                         day=calendar.monthrange(today.year, today.month-1)[1])
                 else:
                     publishDate = publishDate.replace(day=today.day-1)
@@ -321,10 +320,8 @@ def crawlNewsUdn(newsType="stock/head"):
 
             if diff < timedelta(days=1):
                 dataCount += 1
-
-                publishDate = publishDate - timedelta(hours=8)
                 publishDate = publishDate.astimezone(tz=pytz.utc)
-                
+
                 tmp = {}
                 tmp['link'] = link
                 tmp['stocks'] = []
@@ -337,8 +334,6 @@ def crawlNewsUdn(newsType="stock/head"):
 
                 data.append(tmp)
                 prevTmp = publishDate
-                # print("{len} - {time}\t{dif}".format(
-                #     len=len(data), time=publishDate, dif=diff))
             else:
                 flag = False
                 break
