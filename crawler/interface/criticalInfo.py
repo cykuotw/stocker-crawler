@@ -20,8 +20,8 @@ with open('configs/critical_info_filter.json') as criticalInfoReader:
 
 
 def updateCriticalInfo() -> None:
-    pushDiscordLog("Stocker每日重訊", '{} crawler work start.'.format(
-        datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
+    #pushDiscordLog("Stocker每日重訊", '{} crawler work start.'.format(
+    #    datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
 
     try:
         # crawl raw critical info
@@ -95,13 +95,13 @@ def updateCriticalInfo() -> None:
             cnt += 1
 
             if cnt == 5 or (index == len(data)-1 and cnt != 0):
-                pushDiscordInfo("Stocker每日重訊", content)
+                #pushDiscordInfo("Stocker每日重訊", content)
                 pushTelegramMessage(content)
                 content = ""
                 cnt = 0
 
-    pushDiscordLog("Stocker每日重訊", '{} crawler work done.'.format(
-        datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
+    #pushDiscordLog("Stocker每日重訊", '{} crawler work done.'.format(
+    #    datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
 
 
 def toStringExchageType(exchangeType: str = 'sii') -> str:
