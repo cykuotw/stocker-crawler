@@ -31,9 +31,10 @@ def getBasicInfo(dataType='sii'):
     for i in range(len(data)):
         dataPayload = json.loads(
             data.iloc[i].to_json(force_ascii=False))
-        dataPayload['exchangeType'] = dataType
+        dataPayload['exchange_type'] = dataType
         url = "{}/basic_information/{}".format(stockerUrl, dataPayload['id'])
         requests.post(url, data=json.dumps(dataPayload))
+
 
 def getSummaryStockNoServerExist(
         westernYearIn=2019, seasonIn=2, reportType='balance_sheet'):
