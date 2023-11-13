@@ -1,8 +1,8 @@
-# coding=utf-8
-import json
-from datetime import datetime, timedelta
 import calendar
 import gc
+import json
+from datetime import datetime, timedelta
+
 import feedparser
 import pytz
 import requests
@@ -29,35 +29,49 @@ from crawler.core.util import formatJSON
 # }
 
 
-def crawlNewsYahoo(companyID):
+def crawlNewsYahoo(companyID: str = '2330'):
     """
     @Description:
         爬取Yahoo Stock個股每日新聞\n
         Crawl daily news of specific companyID form Yahoo Stock\n
-        ** Under Construction **
     @Param:
-        companyID => int
+        companyID => string (default: '2330')
     @Return:
-        json (see example)
+        json (see example) (empty if companyID not valid)
     """
 
-    coID = str(companyID)
-    url = "https://tw.stock.yahoo.com/rss/s/" + coID
+    headers = {
+        'User-Agent': """Mozilla/5.0
+                    (Macintosh; Intel Mac OS X 10_10_1)
+                    AppleWebKit/537.36 (KHTML, like Gecko)
+                    Chrome/39.0.2171.95 Safari/537.36""",
+        'Content-Type': 'text/xml;'
+    }
 
-    res = requests.get(url)
-    res.encoding = "big5"
+    url = "https://tw.stock.yahoo.com/rss?s=" + companyID
+    res = requests.get(url, headers, timeout=(2, 15))
     feed = feedparser.parse(res.text)
+    news = []
     for item in feed.entries:
-        dateTime = datetime.strptime(item.pubDate, '%a, %d %b %Y %H:%M:%S %Z')
-        print('datetime', dateTime.isoformat())
-        print('title', item.title)
-        print('link', item.link)
-        print('description', item.description)
-        print('stock_id', coID)
-        print("======================================")
+        publishTime = datetime.strptime(
+            item['published'], '%a, %d %b %Y %H:%M:%S %Z')
+        tmp = {}
+        tmp['link'] = item['link']
+        tmp['stock_id'] = companyID
+        tmp['title'] = item['title']
+        tmp['source'] = 'yahoo'
+        tmp['releaseTime'] = publishTime.isoformat()
+
+        news.append(tmp)
+
+    result = {}
+    result['data_count'] = len(news)
+    result['data'] = news
+
+    return result
 
 
-def crawlNewsCnyes(date=datetime.today(), market="tw"):
+def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
     """
     @Description:
         爬取鉅亨網個股每日新聞\n
@@ -86,8 +100,9 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
         market = "tw_stock_news"
     elif market == "us":
         market = "us_stock"
-    url = """https://api.cnyes.com/media/api/v1/newslist/category/{market}?startAt={start}&endAt={end}&limit=30&page=1""".format(
-        market=market, start=todayStartSec, end=todayEndSec)
+    url = "https://api.cnyes.com/media/api/v1/newslist/category/" + market + \
+        "?startAt=" + str(todayStartSec) + "&endAt=" + \
+        str(todayEndSec) + "&limit=30&page=1"
 
     # generate header
     headers = {
@@ -105,7 +120,7 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
 
     # iterate all json pages
     dataCount = 0
-    data = []
+    news = []
     lastPage = jsdata['items']['last_page']
     for page in range(lastPage):
         # get real all news from CNYES json response
@@ -121,22 +136,22 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
             title = element['title']
             releaseTime = element['publishAt']
             releaseTime = epochTime + timedelta(seconds=releaseTime)
-            newsUrl = "https://news.cnyes.com/news/id/{id}".format(id=newsid)
+            newsUrl = "https://news.cnyes.com/news/id/" + newsid
 
-            stock_id = []
+            stockId = []
             # append 'code' to stock_id if tag 'market' exist
             if 'market' in element:
                 for i in range(len(element['market'])):
                     # check if it is tw stock
                     if 'TWS' in element['market'][i]['symbol']:
-                        stock_id.append(element['market'][i]['code'])
+                        stockId.append(element['market'][i]['code'])
             # check stock_id not empty
             # if len(stock_id) != 0:
             dataCount += 1
 
             tmp = {}
             tmp['link'] = newsUrl
-            tmp['stocks'] = stock_id
+            tmp['stocks'] = stockId
             tmp['title'] = title
             tmp['source'] = 'cnyes'
             tmp['releaseTime'] = releaseTime.isoformat()
@@ -144,11 +159,11 @@ def crawlNewsCnyes(date=datetime.today(), market="tw"):
             tmp['tags'] = []
             tmp['description'] = ''
 
-            data.append(tmp)
+            news.append(tmp)
 
     res = {}
     res["data_count"] = str(dataCount)
-    res["data"] = data
+    res["data"] = news
     return res
 
 
@@ -306,7 +321,7 @@ def crawlNewsUdn(newsType="stock/head"):
             diff = today - publishDate
             # publish time cross 12 am
             if pageNo > 2 and diff < timedelta(days=0):
-                if today.day-1 <=0:
+                if today.day-1 <= 0:
                     publishDate = publishDate.replace(
                         month=today.month-1,
                         day=calendar.monthrange(today.year, today.month-1)[1])
