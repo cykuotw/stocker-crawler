@@ -9,8 +9,6 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil import parser, tz
 
-from crawler.core.util import formatJSON
-
 # export example:
 # {
 #     "data_count": "1",
@@ -48,10 +46,10 @@ def crawlNewsYahoo(companyID: str = '2330'):
         'Content-Type': 'text/xml;'
     }
 
-    url = "https://tw.stock.yahoo.com/rss?s=" + companyID
+    url = f"https://tw.stock.yahoo.com/rss?s={companyID}"
     res = requests.get(url, headers, timeout=(2, 15))
     feed = feedparser.parse(res.text)
-    news = []
+    data = []
     for item in feed.entries:
         publishTime = datetime.strptime(
             item['published'], '%a, %d %b %Y %H:%M:%S %Z')
@@ -62,11 +60,11 @@ def crawlNewsYahoo(companyID: str = '2330'):
         tmp['source'] = 'yahoo'
         tmp['releaseTime'] = publishTime.isoformat()
 
-        news.append(tmp)
+        data.append(tmp)
 
     result = {}
-    result['data_count'] = len(news)
-    result['data'] = news
+    result['data_count'] = len(data)
+    result['data'] = data
 
     return result
 
@@ -100,9 +98,8 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
         market = "tw_stock_news"
     elif market == "us":
         market = "us_stock"
-    url = "https://api.cnyes.com/media/api/v1/newslist/category/" + market + \
-        "?startAt=" + str(todayStartSec) + "&endAt=" + \
-        str(todayEndSec) + "&limit=30&page=1"
+    url = f"""https://api.cnyes.com/media/api/v1/newslist/category/{market}?
+                startAt={str(todayStartSec)}&endAt={str(todayEndSec)}&limit=30&page=1"""
 
     # generate header
     headers = {
@@ -120,7 +117,7 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
 
     # iterate all json pages
     dataCount = 0
-    news = []
+    data = []
     lastPage = jsdata['items']['last_page']
     for page in range(lastPage):
         # get real all news from CNYES json response
@@ -136,7 +133,7 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
             title = element['title']
             releaseTime = element['publishAt']
             releaseTime = epochTime + timedelta(seconds=releaseTime)
-            newsUrl = "https://news.cnyes.com/news/id/" + newsid
+            newsUrl = f"https://news.cnyes.com/news/id/{newsid}"
 
             stockId = []
             # append 'code' to stock_id if tag 'market' exist
@@ -159,15 +156,15 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
             tmp['tags'] = []
             tmp['description'] = ''
 
-            news.append(tmp)
+            data.append(tmp)
 
     res = {}
     res["data_count"] = str(dataCount)
-    res["data"] = news
+    res["data"] = data
     return res
 
 
-def crawlNewsCtee(date=datetime.today()):
+def crawlNewsCtee(date: datetime = datetime.today()):
     """
     @Description:
         爬取工商時報科技版每日新聞\n
@@ -180,7 +177,10 @@ def crawlNewsCtee(date=datetime.today()):
 
     # request header
     headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
+        'User-Agent': """Mozilla/5.0
+                    (Macintosh; Intel Mac OS X 10_10_1)
+                    AppleWebKit/537.36 (KHTML, like Gecko)
+                    Chrome/39.0.2171.95 Safari/537.36""",
         'Content-Type': 'text/html; charset=UTF-8'
     }
 
@@ -271,7 +271,10 @@ def crawlNewsUdn(newsType="stock/head"):
 
     # request header
     headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
+        'User-Agent': """Mozilla/5.0
+                    (Macintosh; Intel Mac OS X 10_10_1)
+                    AppleWebKit/537.36 (KHTML, like Gecko)
+                    Chrome/39.0.2171.95 Safari/537.36""",
         'Content-Type': 'text/html; charset=UTF-8'
     }
 
@@ -291,31 +294,26 @@ def crawlNewsUdn(newsType="stock/head"):
     while flag and pageNo < 100:
         url = ""
         if newsType == "stock/head":
-            url = "https://money.udn.com/money/get_article/{page}/1001/5590/5607".format(
-                page=pageNo)
+            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/5607"
         elif newsType == "stock/sii":
-            url = "https://money.udn.com/money/get_article/{page}/1001/5590/5710".format(
-                page=pageNo)
+            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/5710"
         elif newsType == "stock/otc":
-            url = "https://money.udn.com/money/get_article/{page}/1001/5590/11074".format(
-                page=pageNo)
+            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/11074"
         elif newsType == "ind/head":
-            url = "https://money.udn.com/money/get_article/{page}/1001/5591/5612".format(
-                page=pageNo)
+            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5591/5612"
         elif newsType == "int/head":
-            url = "https://money.udn.com/money/get_article/{page}/1001/5588/5599".format(
-                page=pageNo)
+            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5588/5599"
 
         result = requests.get(url, headers, timeout=(2, 15))
         result.encoding = 'utf-8'
 
-        li = BeautifulSoup(result.text, 'html.parser').find_all('li')
-        for index in range(len(li)):
-            title = li[index].find('a').get('title').strip()
-            link = "https://money.udn.com/" + li[index].find('a').get('href')
+        liList = BeautifulSoup(result.text, 'html.parser').find_all('li')
+        for _, li in enumerate(liList):
+            title = li.find('a').get('title').strip()
+            link = f"https://money.udn.com/{li.find('a').get('href')}"
             publishDate = todayTmp.replace(
-                hour=int(li[index].find('span').string[:2]),
-                minute=int(li[index].find('span').string[-2:]),
+                hour=int(li.find('span').string[:2]),
+                minute=int(li.find('span').string[-2:]),
                 second=0, microsecond=0).astimezone(tz=pytz.timezone('Asia/Taipei'))
 
             diff = today - publishDate
@@ -361,8 +359,3 @@ def crawlNewsUdn(newsType="stock/head"):
     res["data_count"] = str(dataCount)
     res["data"] = data
     return res
-
-
-if __name__ == '__main__':
-    data = crawlNewsCnyes(market="tw")
-    print(formatJSON(data))
