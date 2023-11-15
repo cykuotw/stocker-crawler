@@ -2,6 +2,7 @@ import calendar
 import gc
 import json
 from datetime import datetime, timedelta
+from time import sleep
 
 import feedparser
 import pytz
@@ -15,12 +16,15 @@ from dateutil import parser, tz
 #     "data":[
 #         {
 #             "link": "example.com.tw/5566789",
-#             "stock_id": [
+#             "stocks": [
 #              "2330", "2454" ...
 #             ],
 #             "title": "blahblahblahblah",
 #             "source": "cynes",
 #             "releaseTime": 2022-12-22T14:35:06 // iso format
+#             "feedType" = "news",
+#             "tags" = []
+#             "description" = 'dafsdfasfd'
 #         },
 #         ...
 #     ]
@@ -47,18 +51,37 @@ def crawlNewsYahoo(companyID: str = '2330'):
     }
 
     url = f"https://tw.stock.yahoo.com/rss?s={companyID}"
-    res = requests.get(url, headers, timeout=(2, 15))
-    feed = feedparser.parse(res.text)
+
+    waitTime = 10
+    feed = None
+    for _ in range(5):
+        rsp = requests.get(url, headers, timeout=10)
+
+        # if status code is not 200 ok
+        # retry 5 times max, each time extend wait time by 2x
+        if rsp.status_code != 200:
+            sleep(waitTime)
+            waitTime *= 2
+            continue
+
+        feed = feedparser.parse(rsp.text)
+
+    if feed is None:
+        return {}
+
     data = []
-    for item in feed.entries:
+    for item in feed['entries']:
         publishTime = datetime.strptime(
             item['published'], '%a, %d %b %Y %H:%M:%S %Z')
         tmp = {}
         tmp['link'] = item['link']
-        tmp['stock_id'] = companyID
+        tmp['stocks'] = [companyID]
         tmp['title'] = item['title']
         tmp['source'] = 'yahoo'
         tmp['releaseTime'] = publishTime.isoformat()
+        tmp['feedType'] = "news"
+        tmp['tags'] = []
+        tmp['description'] = item['summary']
 
         data.append(tmp)
 
@@ -246,7 +269,7 @@ def crawlNewsCtee(date: datetime = datetime.today()):
     return res
 
 
-def crawlNewsUdn(newsType="stock/head"):
+def crawlNewsUdn(newsType: str = "stock/head"):
     """
     @Description:
         爬取經濟日報產業版每日新聞\n
@@ -267,7 +290,7 @@ def crawlNewsUdn(newsType="stock/head"):
 
     if newsType not in ["stock/head", "stock/sii", "stock/otc",
                         "ind/head", "int/head"]:
-        json.dumps({})
+        return json.dumps({})
 
     # request header
     headers = {
