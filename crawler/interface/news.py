@@ -57,11 +57,14 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
 
     try:
         # Get Ctee News
-        tmp = crawlNewsCtee(datetimeIn)
-        for index in range(int(tmp['data_count'])):
-            if tmp['data'][index] not in data:
-                count += 1
-                data.append(tmp['data'][index])
+        newsList = ["industry", "tech", "world"]
+        for news in newsList:
+            tmp = crawlNewsCtee(newsList)
+
+            for index in range(int(tmp['data_count'])):
+                if tmp['data'][index] not in data:
+                    count += 1
+                    data.append(tmp['data'][index])
     except Exception as ex:
         pushSlackMessage(
             "Stocker每日新聞",

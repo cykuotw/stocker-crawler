@@ -8,7 +8,7 @@ import feedparser
 import pytz
 import requests
 from bs4 import BeautifulSoup
-from dateutil import parser, tz
+from dateutil import tz
 
 # export example:
 # {
@@ -52,7 +52,7 @@ def crawlNewsYahoo(companyID: str = '2330'):
 
     url = f"https://tw.stock.yahoo.com/rss?s={companyID}"
 
-    waitTime = 10
+    waitTime = 5
     feed = None
     for _ in range(5):
         rsp = requests.get(url, headers, timeout=10)
@@ -187,81 +187,73 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
     return res
 
 
-def crawlNewsCtee(date: datetime = datetime.today()):
+def crawlNewsCtee(newsType: str = "industry"):
     """
     @Description:
         爬取工商時報科技版每日新聞\n
         Crawl daily news of tech from CTEE\n
     @Param:
-        date => datetime (default: system current date)
+        newsType => string (default: "industry")
+                        "industry": industrial headline
+                        "tech": technology headlines
+                        "world": world headlines
     @Return:
         json (see example)
     """
 
+    if newsType not in ["industry", "tech", "world"]:
+        return json.dumps({})
+
     # request header
     headers = {
-        'User-Agent': """Mozilla/5.0
-                    (Macintosh; Intel Mac OS X 10_10_1)
-                    AppleWebKit/537.36 (KHTML, like Gecko)
-                    Chrome/39.0.2171.95 Safari/537.36""",
-        'Content-Type': 'text/html; charset=UTF-8'
+        'User-Agent': ("Mozilla/5.0 "
+                       "(Macintosh; Intel Mac OS X 10_10_1) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/39.0.2171.95 Safari/537.36"),
+        'Content-Type': 'text/xml;'
     }
 
-    # data container
+    url = f"https://www.ctee.com.tw/rss_web/livenews/{newsType}"
+
+    waitTime = 15
+    entries = None
+    for _ in range(5):
+        rsp = requests.get(url, headers=headers, timeout=5)
+
+        # if status code is not 200 ok
+        # retry 5 times max, each time extend wait time by 2x
+        if rsp.status_code != 200:
+            sleep(waitTime)
+            waitTime *= 2
+            continue
+
+        feed = feedparser.parse(rsp.text)
+        entries = feed['entries']
+
+    if entries is None:
+        return {}
+
     dataCount = 0
     data = []
+    for _, e in enumerate(entries):
+        publishTime = datetime.strptime(
+            e['published'], '%Y-%m-%dT%H:%M:%S')
+        title = e['title']
+        link = e['link']
+        description = e['summary'].replace("\n", "")
 
-    today = date.replace(hour=0, minute=0, second=0,
-                         microsecond=0).astimezone(tz=pytz.UTC)
+        tmp = {}
+        tmp['link'] = link
+        tmp['stocks'] = []
+        tmp['title'] = title
+        tmp['source'] = 'ctee'
+        tmp['releaseTime'] = publishTime.isoformat()
+        tmp['feedType'] = 'news'
+        tmp['tags'] = []
+        tmp['description'] = description
 
-    # while loop prep
-    pageNo = 1
-    flag = True
-
-    while flag:
-        if pageNo == 1:
-            url = 'https://ctee.com.tw/category/news/tech,industry,biotech'
-        else:
-            url = 'https://ctee.com.tw/category/news/tech,industry,biotech/page/{}'.format(
-                pageNo)
-
-        page = requests.get(url, headers=headers, timeout=(2, 15))
-        article = BeautifulSoup(page.text, 'html.parser').findAll('article')
-
-        if (len(article) == 0):
-            break
-
-        for index in range(len(article)):
-            title = article[index].find('a').get('title')
-            link = article[index].find('a').get('href')
-            publishDate = parser.parse(article[index].find(
-                'time').get('datetime')).astimezone(tz=pytz.UTC)
-
-            diff = publishDate - today
-            # Publish date too early, stop all process
-            if diff < timedelta(days=0):
-                flag = False
-                break
-            # Publish date within 1 day of given date
-            if diff < timedelta(days=1):
-                dataCount += 1
-
-                tmp = {}
-                tmp['link'] = link
-                tmp['stocks'] = []
-                tmp['title'] = title
-                tmp['source'] = 'ctee'
-                tmp['releaseTime'] = publishDate.isoformat()
-                tmp['feedType'] = 'news'
-                tmp['tags'] = []
-                tmp['description'] = ''
-
-                data.append(tmp)
-            else:
-                # stop while loop
-                flag = False
-                break
-        pageNo += 1
+        data.append(tmp)
+        dataCount += 1
 
     res = {}
     res["data_count"] = str(dataCount)
