@@ -210,12 +210,13 @@ def crawlNewsCtee(newsType: str = "industry"):
                        "(Macintosh; Intel Mac OS X 10_10_1) "
                        "AppleWebKit/537.36 (KHTML, like Gecko) "
                        "Chrome/39.0.2171.95 Safari/537.36"),
-        'Content-Type': 'text/xml;'
+        'Content-Type': 'application/rss+xml; charset=utf-8',
+        "Referer": "https://www.ctee.com.tw/livenews/industry"
     }
 
     url = f"https://www.ctee.com.tw/rss_web/livenews/{newsType}"
 
-    waitTime = 15
+    waitTime = 5
     entries = None
     for _ in range(5):
         rsp = requests.get(url, headers=headers, timeout=5)
@@ -223,6 +224,7 @@ def crawlNewsCtee(newsType: str = "industry"):
         # if status code is not 200 ok
         # retry 5 times max, each time extend wait time by 2x
         if rsp.status_code != 200:
+            print("retry in", waitTime, "sec")
             sleep(waitTime)
             waitTime *= 2
             continue
