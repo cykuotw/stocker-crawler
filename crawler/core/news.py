@@ -43,10 +43,10 @@ def crawlNewsYahoo(companyID: str = '2330'):
     """
 
     headers = {
-        'User-Agent': """Mozilla/5.0
-                    (Macintosh; Intel Mac OS X 10_10_1)
-                    AppleWebKit/537.36 (KHTML, like Gecko)
-                    Chrome/39.0.2171.95 Safari/537.36""",
+        'User-Agent': ("Mozilla/5.0 "
+                       "(Macintosh; Intel Mac OS X 10_10_1) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/39.0.2171.95 Safari/537.36"),
         'Content-Type': 'text/xml;'
     }
 
@@ -126,10 +126,10 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
 
     # generate header
     headers = {
-        'User-Agent': """Mozilla/5.0
-                    (Macintosh; Intel Mac OS X 10_10_1)
-                    AppleWebKit/537.36 (KHTML, like Gecko)
-                    Chrome/39.0.2171.95 Safari/537.36""",
+        'User-Agent': ("Mozilla/5.0 "
+                       "(Macintosh; Intel Mac OS X 10_10_1) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/39.0.2171.95 Safari/537.36"),
         'Content-Type': 'application/json'
     }
 
@@ -286,10 +286,10 @@ def crawlNewsUdn(newsType: str = "stock/head"):
 
     # request header
     headers = {
-        'User-Agent': """Mozilla/5.0
-                    (Macintosh; Intel Mac OS X 10_10_1)
-                    AppleWebKit/537.36 (KHTML, like Gecko)
-                    Chrome/39.0.2171.95 Safari/537.36""",
+        'User-Agent': ("Mozilla/5.0 "
+                       "(Macintosh; Intel Mac OS X 10_10_1) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/39.0.2171.95 Safari/537.36"),
         'Content-Type': 'text/html; charset=UTF-8'
     }
 
