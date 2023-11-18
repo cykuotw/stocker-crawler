@@ -1,18 +1,48 @@
 import json
+import random
+import time
 from datetime import datetime
 
 import requests
 
-from crawler.core.news import (
-    crawlNewsCnyes,
-    crawlNewsCtee,
-    crawlNewsUdn,
-    crawlNewsYahoo,
-)
+from crawler.core.news import crawlNewsCnyes, crawlNewsUdn, crawlNewsYahoo
 from crawler.interface.basicInfo import getStockNoBasicInfo
 from crawler.interface.util import stockerUrl
 from notifier.discord import pushDiscordLog
 from notifier.util import pushSlackMessage
+
+
+def updateDailyNewsYahoo():
+    """
+    @Description:
+        更新每日Yahoo的新聞\n
+        Update all daily news related to tw stock market
+        from yahoo to stocker server\n
+    @Param:
+        N/A
+    @Return:
+        N/A
+    """
+    pushLog("Stocker每日新聞 Yahoo", "crawler work start")
+
+    data = []
+    try:
+        # Get Yahoo News
+        idList = getStockNoBasicInfo()
+        for _, stockId in enumerate(idList):
+            tmp = crawlNewsYahoo(str(stockId))
+            data.extend(tmp["data"])
+
+            time.sleep(random.uniform(1, 2))
+    except Exception as ex:
+        pushLog("Stocker每日新聞 Yahoo", f"Yahoo crawler work error: {ex}")
+
+    if len(data) == 0:
+        pushLog("Stocker每日新聞 Yahoo", "crawler work done")
+        return
+
+    updateNewsToServer(data)
+    pushLog("Stocker每日新聞 Yahoo", "crawler work done")
 
 
 def updateDailyNews(datetimeIn: datetime = datetime.today()):
@@ -27,15 +57,9 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
         N/A
     """
 
-    count = 0
     data = []
 
-    pushSlackMessage(
-        "Stocker每日新聞",
-        f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} crawler work start")
-    pushDiscordLog(
-        "Stocker每日新聞",
-        f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} crawler work start")
+    pushLog("Stocker每日新聞", "crawler work start")
 
     try:
         # Get CNYES News
@@ -45,30 +69,9 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
             tmp = crawlNewsCnyes(datetimeIn, market)
             for index in range(int(tmp['data_count'])):
                 if tmp['data'][index] not in data:
-                    count += 1
                     data.append(tmp['data'][index])
     except Exception as ex:
-        pushSlackMessage(
-            "Stocker每日新聞",
-            f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} CNYES crawler work error: {ex}")
-        pushDiscordLog(
-            "Stocker每日新聞",
-            f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} CNYES crawler work error: {ex}")
-
-    try:
-        # Get Ctee News
-        tmp = crawlNewsCtee(datetimeIn)
-        for index in range(int(tmp['data_count'])):
-            if tmp['data'][index] not in data:
-                count += 1
-                data.append(tmp['data'][index])
-    except Exception as ex:
-        pushSlackMessage(
-            "Stocker每日新聞",
-            f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} CTEE crawler work error: {ex}")
-        pushDiscordLog(
-            "Stocker每日新聞",
-            f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} CTEE crawler work error: {ex}")
+        pushLog("Stocker每日新聞", f"CNYES crawler work error: {ex}")
 
     try:
         # Get Udn News
@@ -78,57 +81,52 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
             tmp = crawlNewsUdn(news)
             for index in range(int(tmp['data_count'])):
                 if tmp['data'][index] not in data:
-                    count += 1
                     data.append(tmp['data'][index])
     except Exception as ex:
-        pushSlackMessage(
-            "Stocker每日新聞",
-            f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} UDN crawler work error: {ex}")
-        pushDiscordLog(
-            "Stocker每日新聞",
-            f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} UDN crawler work error: {ex}")
+        pushLog("Stocker每日新聞", f"UDN crawler work error: {ex}")
 
-    try:
-        # Get Yahoo News
-        idList = getStockNoBasicInfo()
+    updateNewsToServer(data)
+    pushLog("Stocker每日新聞", "crawler work done")
 
-        for _, stockId in enumerate(idList):
-            tmp = crawlNewsYahoo(str(stockId))
-            for _, news in enumerate(tmp['data']):
-                if news not in data:
-                    count += 1
-                    data.append(news)
-    except Exception as ex:
-        pushSlackMessage(
-            "Stocker每日新聞",
-            f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} Yahoo crawler work error: {ex}")
-        pushDiscordLog(
-            "Stocker每日新聞",
-            f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} Yahoo crawler work error: {ex}")
 
-    if count == 0:
+def pushLog(title: str = "Stocker每日新聞", msg: str = "") -> None:
+    """
+    @Description:
+        推送Log訊息\n
+        Push log message\n
+    @Param:
+        title: str, title of the message (default: "Stocker每日新聞")
+        msg: str, message content (default: "")
+    @Return:
+        N/A
+    """
+    pushSlackMessage(
+        title, f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {msg}")
+    pushDiscordLog(
+        title, f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {msg}")
+
+
+def updateNewsToServer(data: list = None):
+    """
+    @Description:
+        推送當日新聞到Stocker server\n
+        Push daily news to the Stocker server\n
+    @Param:
+        data: list of maps (default: [])
+    @Return:
+        N/A
+    """
+    if data is None:
         return
 
     # Update to stocker server
     newsApi = f"{stockerUrl}/feed"
-    for index in range(count):
+    for _, item in enumerate(data):
         try:
-            requests.post(newsApi,
-                          data=json.dumps(data[index]),
-                          timeout=(2, 5))
+            rsp = requests.post(newsApi, data=json.dumps(item), timeout=10)
+            if rsp.status_code != 200:
+                raise ConnectionError
+        except ConnectionError:
+            pushLog("Stocker每日新聞", "server error: connection failure")
         except Exception as ex:
-            pushSlackMessage(
-                "Stocker每日新聞",
-                f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} server error: {ex}")
-            pushDiscordLog(
-                "Stocker每日新聞",
-                f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} server error: {ex}")
-
-    pushSlackMessage(
-        "Stocker每日新聞", f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} crawler work done")
-    pushDiscordLog(
-        "Stocker每日新聞", f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} crawler work done")
-
-
-if __name__ == '__main__':
-    updateDailyNews()
+            pushLog("Stocker每日新聞", f"server error: {ex}")
