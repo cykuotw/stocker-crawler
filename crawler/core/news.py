@@ -8,7 +8,8 @@ import feedparser
 import pytz
 import requests
 from bs4 import BeautifulSoup
-from dateutil import parser, tz
+from dateutil import tz
+from fake_useragent import UserAgent
 
 # export example:
 # {
@@ -41,15 +42,12 @@ def crawlNewsYahoo(companyID: str = '2330'):
     @Return:
         json (see example) (empty if companyID not valid)
     """
+    gc.enable()
 
     headers = {
-        'User-Agent': """Mozilla/5.0
-                    (Macintosh; Intel Mac OS X 10_10_1)
-                    AppleWebKit/537.36 (KHTML, like Gecko)
-                    Chrome/39.0.2171.95 Safari/537.36""",
+        'User-Agent': UserAgent().random,
         'Content-Type': 'text/xml;'
     }
-
     url = f"https://tw.stock.yahoo.com/rss?s={companyID}"
 
     waitTime = 10
@@ -60,6 +58,7 @@ def crawlNewsYahoo(companyID: str = '2330'):
         # if status code is not 200 ok
         # retry 5 times max, each time extend wait time by 2x
         if rsp.status_code != 200:
+            print(f"yahoo cralwer retry in {waitTime} sec")
             sleep(waitTime)
             waitTime *= 2
             continue
@@ -84,6 +83,9 @@ def crawlNewsYahoo(companyID: str = '2330'):
         tmp['description'] = item['summary']
 
         data.append(tmp)
+
+    gc.collect()
+    gc.disable()
 
     result = {}
     result['data_count'] = len(data)
@@ -126,10 +128,7 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
 
     # generate header
     headers = {
-        'User-Agent': """Mozilla/5.0
-                    (Macintosh; Intel Mac OS X 10_10_1)
-                    AppleWebKit/537.36 (KHTML, like Gecko)
-                    Chrome/39.0.2171.95 Safari/537.36""",
+        'User-Agent': UserAgent().random,
         'Content-Type': 'application/json'
     }
 
@@ -187,88 +186,6 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
     return res
 
 
-def crawlNewsCtee(date: datetime = datetime.today()):
-    """
-    @Description:
-        爬取工商時報科技版每日新聞\n
-        Crawl daily news of tech from CTEE\n
-    @Param:
-        date => datetime (default: system current date)
-    @Return:
-        json (see example)
-    """
-
-    # request header
-    headers = {
-        'User-Agent': """Mozilla/5.0
-                    (Macintosh; Intel Mac OS X 10_10_1)
-                    AppleWebKit/537.36 (KHTML, like Gecko)
-                    Chrome/39.0.2171.95 Safari/537.36""",
-        'Content-Type': 'text/html; charset=UTF-8'
-    }
-
-    # data container
-    dataCount = 0
-    data = []
-
-    today = date.replace(hour=0, minute=0, second=0,
-                         microsecond=0).astimezone(tz=pytz.UTC)
-
-    # while loop prep
-    pageNo = 1
-    flag = True
-
-    while flag:
-        if pageNo == 1:
-            url = 'https://ctee.com.tw/category/news/tech,industry,biotech'
-        else:
-            url = 'https://ctee.com.tw/category/news/tech,industry,biotech/page/{}'.format(
-                pageNo)
-
-        page = requests.get(url, headers=headers, timeout=(2, 15))
-        article = BeautifulSoup(page.text, 'html.parser').findAll('article')
-
-        if (len(article) == 0):
-            break
-
-        for index in range(len(article)):
-            title = article[index].find('a').get('title')
-            link = article[index].find('a').get('href')
-            publishDate = parser.parse(article[index].find(
-                'time').get('datetime')).astimezone(tz=pytz.UTC)
-
-            diff = publishDate - today
-            # Publish date too early, stop all process
-            if diff < timedelta(days=0):
-                flag = False
-                break
-            # Publish date within 1 day of given date
-            if diff < timedelta(days=1):
-                dataCount += 1
-
-                tmp = {}
-                tmp['link'] = link
-                tmp['stocks'] = []
-                tmp['title'] = title
-                tmp['source'] = 'ctee'
-                tmp['releaseTime'] = publishDate.isoformat()
-                tmp['feedType'] = 'news'
-                tmp['tags'] = []
-                tmp['description'] = ''
-
-                data.append(tmp)
-            else:
-                # stop while loop
-                flag = False
-                break
-        pageNo += 1
-
-    res = {}
-    res["data_count"] = str(dataCount)
-    res["data"] = data
-    return res
-
-
 def crawlNewsUdn(newsType: str = "stock/head"):
     """
     @Description:
@@ -294,10 +211,7 @@ def crawlNewsUdn(newsType: str = "stock/head"):
 
     # request header
     headers = {
-        'User-Agent': """Mozilla/5.0
-                    (Macintosh; Intel Mac OS X 10_10_1)
-                    AppleWebKit/537.36 (KHTML, like Gecko)
-                    Chrome/39.0.2171.95 Safari/537.36""",
+        'User-Agent': UserAgent().random,
         'Content-Type': 'text/html; charset=UTF-8'
     }
 
