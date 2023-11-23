@@ -25,23 +25,15 @@ def updateDailyNewsYahoo():
     """
     pushLog("Stocker每日新聞 Yahoo", "crawler work start")
 
-    data = []
     try:
         # Get Yahoo News
         idList = getStockNoBasicInfo()
         for _, stockId in enumerate(idList):
-            tmp = crawlNewsYahoo(str(stockId))
-            data.extend(tmp["data"])
-
-            time.sleep(random.uniform(1, 2))
+            data = crawlNewsYahoo(str(stockId))
+            updateNewsToServer(data)
     except Exception as ex:
         pushLog("Stocker每日新聞 Yahoo", f"Yahoo crawler work error: {ex}")
 
-    if len(data) == 0:
-        pushLog("Stocker每日新聞 Yahoo", "crawler work done")
-        return
-
-    updateNewsToServer(data)
     pushLog("Stocker每日新聞 Yahoo", "crawler work done")
 
 

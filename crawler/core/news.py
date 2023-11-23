@@ -50,7 +50,7 @@ def crawlNewsYahoo(companyID: str = '2330'):
     }
     url = f"https://tw.stock.yahoo.com/rss?s={companyID}"
 
-    waitTime = 10
+    waitTime = 5
     feed = None
     for _ in range(5):
         rsp = requests.get(url, headers, timeout=10)
@@ -64,6 +64,7 @@ def crawlNewsYahoo(companyID: str = '2330'):
             continue
 
         feed = feedparser.parse(rsp.text)
+        break
 
     if feed is None:
         return {}
