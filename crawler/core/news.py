@@ -55,9 +55,9 @@ def crawlNewsYahoo(companyID: str = '2330'):
     for _ in range(5):
         rsp = requests.get(url, headers, timeout=10)
 
-        # if status code is not 200 ok
+        # if status code is not 2xx
         # retry 5 times max, each time extend wait time by 2x
-        if rsp.status_code != 200:
+        if rsp.status_code < 200 or rsp.status_code > 299:
             print(f"yahoo cralwer retry in {waitTime} sec")
             sleep(waitTime)
             waitTime *= 2

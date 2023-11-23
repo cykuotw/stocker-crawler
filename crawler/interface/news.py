@@ -116,9 +116,10 @@ def updateNewsToServer(data: list = None):
     for _, item in enumerate(data):
         try:
             rsp = requests.post(newsApi, data=json.dumps(item), timeout=10)
-            if rsp.status_code != 200:
+            if rsp.status_code < 200 or rsp.status_code > 299:
                 raise ConnectionError
         except ConnectionError:
             pushLog("Stocker每日新聞", "server error: connection failure")
+            break
         except Exception as ex:
             pushLog("Stocker每日新聞", f"server error: {ex}")
