@@ -1,6 +1,4 @@
 import json
-import random
-import time
 from datetime import datetime
 
 import requests
@@ -30,7 +28,9 @@ def updateDailyNewsYahoo():
         idList = getStockNoBasicInfo()
         for _, stockId in enumerate(idList):
             data = crawlNewsYahoo(str(stockId))
-            updateNewsToServer(data)
+            status = updateNewsToServer(data)
+            if status is not True:
+                break
     except Exception as ex:
         pushLog("Stocker每日新聞 Yahoo", f"Yahoo crawler work error: {ex}")
 
@@ -98,7 +98,7 @@ def pushLog(title: str = "Stocker每日新聞", msg: str = "") -> None:
         title, f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {msg}")
 
 
-def updateNewsToServer(data: list = None):
+def updateNewsToServer(data: list = None) -> bool:
     """
     @Description:
         推送當日新聞到Stocker server\n
@@ -106,20 +106,23 @@ def updateNewsToServer(data: list = None):
     @Param:
         data: list of maps (default: [])
     @Return:
-        N/A
+        updateSucceed: bool (fail: True, succeed: False)
     """
     if data is None:
-        return
+        return True
 
     # Update to stocker server
     newsApi = f"{stockerUrl}/feed"
-    for _, item in enumerate(data):
+    for _, item in enumerate(data['data']):
         try:
             rsp = requests.post(newsApi, data=json.dumps(item), timeout=10)
             if rsp.status_code < 200 or rsp.status_code > 299:
                 raise ConnectionError
         except ConnectionError:
             pushLog("Stocker每日新聞", "server error: connection failure")
-            break
+            return False
         except Exception as ex:
             pushLog("Stocker每日新聞", f"server error: {ex}")
+            return False
+
+    return True
