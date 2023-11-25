@@ -34,7 +34,7 @@ def updateDailyNewsYahoo():
         idList = getStockNoBasicInfo()
         for _, stockId in enumerate(idList):
             data = crawlNewsYahoo(str(stockId))
-            failList = updateNewsToServer(data)
+            failList = updateNewsToServer(data['data'])
             if failList:
                 failCount += len(failList)
                 for _, item in enumerate(failList):
@@ -44,7 +44,7 @@ def updateDailyNewsYahoo():
         pushLog("Stocker每日新聞 Yahoo", f"Yahoo crawler work error: {ex}")
 
     pushLog("Stocker每日新聞 Yahoo",
-            f"crawler work done. \nTotal time: {(time.time() - start)/60} min. \nTotal update fails: {failCount}")
+            f"crawler work done. \nTotal time: {(time.time() - start)/60:.2f} min. \nTotal update fails: {failCount}")
 
 
 def updateDailyNews(datetimeIn: datetime = datetime.today()):
@@ -59,8 +59,6 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
         N/A
     """
 
-    data = []
-
     pushLog("Stocker每日新聞", "crawler work start")
 
     try:
@@ -68,10 +66,12 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
         marketList = ["tw", "us"]
 
         for market in marketList:
-            tmp = crawlNewsCnyes(datetimeIn, market)
-            for index in range(int(tmp['data_count'])):
-                if tmp['data'][index] not in data:
-                    data.append(tmp['data'][index])
+            data = crawlNewsCnyes(datetimeIn, market)
+            failList = updateNewsToServer(data['data'])
+            if failList:
+                failCount += len(failList)
+                for _, item in enumerate(failList):
+                    logger.log(logging.WARNING, item)
     except Exception as ex:
         pushLog("Stocker每日新聞", f"CNYES crawler work error: {ex}")
 
@@ -80,10 +80,12 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
         newsList = ["stock/head", "stock/sii", "stock/otc",
                     "ind/head", "int/head"]
         for news in newsList:
-            tmp = crawlNewsUdn(news)
-            for index in range(int(tmp['data_count'])):
-                if tmp['data'][index] not in data:
-                    data.append(tmp['data'][index])
+            data = crawlNewsUdn(news)
+            failList = updateNewsToServer(data['data'])
+            if failList:
+                failCount += len(failList)
+                for _, item in enumerate(failList):
+                    logger.log(logging.WARNING, item)
     except Exception as ex:
         pushLog("Stocker每日新聞", f"UDN crawler work error: {ex}")
 
@@ -118,14 +120,14 @@ def updateNewsToServer(data: list = None) -> list:
     @Return:
         failList: list of update fails
     """
-    if data is None:
+    if not data:
         return []
 
     failList = []
 
     # Update to stocker server
     newsApi = f"{stockerUrl}/feed"
-    for _, item in enumerate(data['data']):
+    for _, item in enumerate(data):
         try:
             rsp = requests.post(newsApi, data=json.dumps(item), timeout=10)
             if rsp.status_code < 200 or rsp.status_code > 299:
