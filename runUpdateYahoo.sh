@@ -1,6 +1,6 @@
 #!/bin/bash
 cd $(dirname "$0")
 source venv/bin/activate
-python3 updateDailyNewsYahoo.py
+python3 newsYahooUpdate.py
 deactivate
 exit 0
