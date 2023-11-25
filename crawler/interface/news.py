@@ -1,4 +1,6 @@
 import json
+import logging
+import time
 from datetime import datetime
 
 import requests
@@ -8,6 +10,8 @@ from crawler.interface.basicInfo import getStockNoBasicInfo
 from crawler.interface.util import stockerUrl
 from notifier.discord import pushDiscordLog
 from notifier.util import pushSlackMessage
+
+logger = logging.getLogger()
 
 
 def updateDailyNewsYahoo():
@@ -23,18 +27,24 @@ def updateDailyNewsYahoo():
     """
     pushLog("Stocker每日新聞 Yahoo", "crawler work start")
 
+    start = time.time()
+    failCount = 0
     try:
         # Get Yahoo News
         idList = getStockNoBasicInfo()
         for _, stockId in enumerate(idList):
             data = crawlNewsYahoo(str(stockId))
-            status = updateNewsToServer(data)
-            if status is not True:
-                break
+            failList = updateNewsToServer(data)
+            if failList:
+                failCount += len(failList)
+                for _, item in enumerate(failList):
+                    logger.log(logging.WARNING, item)
+
     except Exception as ex:
         pushLog("Stocker每日新聞 Yahoo", f"Yahoo crawler work error: {ex}")
 
-    pushLog("Stocker每日新聞 Yahoo", "crawler work done")
+    pushLog("Stocker每日新聞 Yahoo",
+            f"crawler work done. \nTotal time: {(time.time() - start)/60} min. \nTotal update fails: {failCount}")
 
 
 def updateDailyNews(datetimeIn: datetime = datetime.today()):
@@ -98,7 +108,7 @@ def pushLog(title: str = "Stocker每日新聞", msg: str = "") -> None:
         title, f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {msg}")
 
 
-def updateNewsToServer(data: list = None) -> bool:
+def updateNewsToServer(data: list = None) -> list:
     """
     @Description:
         推送當日新聞到Stocker server\n
@@ -106,10 +116,12 @@ def updateNewsToServer(data: list = None) -> bool:
     @Param:
         data: list of maps (default: [])
     @Return:
-        updateSucceed: bool (fail: True, succeed: False)
+        failList: list of update fails
     """
     if data is None:
-        return True
+        return []
+
+    failList = []
 
     # Update to stocker server
     newsApi = f"{stockerUrl}/feed"
@@ -117,12 +129,8 @@ def updateNewsToServer(data: list = None) -> bool:
         try:
             rsp = requests.post(newsApi, data=json.dumps(item), timeout=10)
             if rsp.status_code < 200 or rsp.status_code > 299:
-                raise ConnectionError
-        except ConnectionError:
-            pushLog("Stocker每日新聞", "server error: connection failure")
-            return False
+                failList.append((rsp, item))
         except Exception as ex:
             pushLog("Stocker每日新聞", f"server error: {ex}")
-            return False
 
-    return True
+    return failList
