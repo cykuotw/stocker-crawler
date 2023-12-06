@@ -58,6 +58,8 @@ def dailyRoutineWork():
                             )
                         )
                     )
+                    if res.status_code == 500:
+                        pushSlackMessage("Stocker日常工作", f'screener work error: {filter}')
             
             if (datetime.now().month in (1, 4, 7, 10)):
                 res = requests.get(
@@ -68,6 +70,8 @@ def dailyRoutineWork():
                             '單季營收篩選', webhook['stocker'])
                     )
                 )
+                if res.status_code == 500:
+                    pushSlackMessage("Stocker日常工作", 'screener work error: 單季營收篩選')
     except Exception as e:
         curTime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         pushSlackMessage("Stocker日常工作", '{} work error: {}'.format(curTime, e))
