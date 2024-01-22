@@ -69,7 +69,6 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
             data = crawlNewsCnyes(datetimeIn, market)
             failList = updateNewsToServer(data['data'])
             if failList:
-                failCount += len(failList)
                 for _, item in enumerate(failList):
                     logger.log(logging.WARNING, item)
     except Exception as ex:
@@ -83,7 +82,6 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
             data = crawlNewsUdn(news)
             failList = updateNewsToServer(data['data'])
             if failList:
-                failCount += len(failList)
                 for _, item in enumerate(failList):
                     logger.log(logging.WARNING, item)
     except Exception as ex:
