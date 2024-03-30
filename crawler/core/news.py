@@ -200,6 +200,7 @@ def crawlNewsCtee(newsType: str = "industry"):
     @Return:
         json (see example)
     """
+    gc.enable()
 
     if newsType not in ["industry", "tech", "world"]:
         return json.dumps({})
@@ -212,59 +213,59 @@ def crawlNewsCtee(newsType: str = "industry"):
             "AppleWebKit/537.36 (KHTML, like Gecko) " +
             "Chrome/39.0.2171.95 Safari/537.36"
         ),
-        "Accept": (
-            "text/html,application/xhtml+xml,application/xml;" +
-            "q=0.9,image/avif,image/webp,image/apng,*/*;" +
-            "q=0.8,application/signed-exchange;" +
-            "v=b3;q=0.7"
-        ),
+        'Accept': "*/*",
         "Sec-Fetch-User": "?1",
         "Content-Type": 'application/rss+xml; charset=utf-8',
         "Referer": "https://www.ctee.com.tw/livenews/industry"
     }
 
-    url = f"https://www.ctee.com.tw/rss_web/livenews/{newsType}"
-
-    waitTime = 5
-    entries = None
-    for _ in range(5):
-        rsp = requests.get(url, headers=headers, timeout=5)
-
-        # if status code is not 200 ok
-        # retry 5 times max, each time extend wait time by 2x
-        if rsp.status_code != 200:
-            print("retry in", waitTime, "sec")
-            sleep(waitTime)
-            waitTime *= 2
-            continue
-
-        feed = feedparser.parse(rsp.text)
-        entries = feed['entries']
-
-    if entries is None:
-        return {}
+    now = datetime.now(tz=tz.gettz('Asia/Taipei'))
 
     dataCount = 0
     data = []
-    for _, e in enumerate(entries):
-        publishTime = datetime.strptime(
-            e['published'], '%Y-%m-%dT%H:%M:%S')
-        title = e['title']
-        link = e['link']
-        description = e['summary'].replace("\n", "")
 
-        tmp = {}
-        tmp['link'] = link
-        tmp['stocks'] = []
-        tmp['title'] = title
-        tmp['source'] = 'ctee'
-        tmp['releaseTime'] = publishTime.isoformat()
-        tmp['feedType'] = 'news'
-        tmp['tags'] = []
-        tmp['description'] = description
+    flag = True
+    page = 0
+    maxPage = 10
+    waitTime = 5
 
-        data.append(tmp)
-        dataCount += 1
+    while flag and page < maxPage:
+        url = f"https://www.ctee.com.tw/api/livenews/{newsType}/{page+1}"
+
+        result = requests.get(url, headers=headers, timeout=5)
+        jsdata = json.loads(result.text)
+
+        for _, item in enumerate(jsdata):
+            publishTime = datetime.strptime(
+                item['publishDatetime'], '%Y-%m-%dT%H:%M:%S')
+            publishTime = publishTime.replace(tzinfo=tz.gettz('Asia/Taipei'))
+            if now - publishTime > timedelta(days=1):
+                flag = False
+                break
+
+            link = "https://www.ctee.com.tw" + item['hyperLink']
+            title = item['title']
+            description = item['content']
+
+            tmp = {}
+            tmp['link'] = link
+            tmp['stocks'] = []
+            tmp['title'] = title
+            tmp['source'] = 'ctee'
+            tmp['releaseTime'] = publishTime.astimezone(tz=tz.UTC).isoformat()
+            tmp['feedType'] = 'news'
+            tmp['tags'] = []
+            tmp['description'] = description
+
+            data.append(tmp)
+            dataCount += 1
+
+        page += 1
+        if flag:
+            sleep(waitTime)
+
+    gc.collect()
+    gc.disable()
 
     res = {}
     res["data_count"] = str(dataCount)
@@ -336,7 +337,7 @@ def crawlNewsUdn(newsType: str = "stock/head"):
         liList = BeautifulSoup(result.text, 'html.parser').find_all('li')
         for _, li in enumerate(liList):
             title = li.find('a').get('title').strip()
-            link = f"https://money.udn.com/{li.find('a').get('href')}"
+            link = f"https://money.udn.com{li.find('a').get('href')}"
             publishDate = todayTmp.replace(
                 hour=int(li.find('span').string[:2]),
                 minute=int(li.find('span').string[-2:]),
