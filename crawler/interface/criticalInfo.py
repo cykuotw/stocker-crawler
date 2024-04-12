@@ -80,7 +80,11 @@ def updateCriticalInfo() -> None:
         content = ""
         cnt = 0
         for index in range(len(data)):
-            if data[index]['negativeTag'] or len(data[index]['tags']) == 0:
+            if (
+                data[index]['negativeTag'] or 
+                len(data[index]['tags']) == 0 or
+                data[index]['type'] in ['rotc', 'pub']
+            ):
                 continue
             content += "**" + str(int(data[index]['股號'])) + "**\t"
             # to unicode asterisk(*)
