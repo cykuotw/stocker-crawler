@@ -224,45 +224,35 @@ def crawlNewsCtee(newsType: str = "industry"):
     dataCount = 0
     data = []
 
-    flag = True
-    page = 0
-    maxPage = 10
-    waitTime = 5
+    url = f"https://www.ctee.com.tw/api/livenews/{newsType}"
 
-    while flag and page < maxPage:
-        url = f"https://www.ctee.com.tw/api/livenews/{newsType}/{page+1}"
+    result = requests.get(url, headers=headers, timeout=5)
+    jsdata = json.loads(result.text)
 
-        result = requests.get(url, headers=headers, timeout=5)
-        jsdata = json.loads(result.text)
+    for _, item in enumerate(jsdata):
+        publishTime = datetime.strptime(
+            item['publishDatetime'], '%Y-%m-%dT%H:%M:%S')
+        publishTime = publishTime.replace(tzinfo=tz.gettz('Asia/Taipei'))
+        if now - publishTime > timedelta(days=1):
+            flag = False
+            break
 
-        for _, item in enumerate(jsdata):
-            publishTime = datetime.strptime(
-                item['publishDatetime'], '%Y-%m-%dT%H:%M:%S')
-            publishTime = publishTime.replace(tzinfo=tz.gettz('Asia/Taipei'))
-            if now - publishTime > timedelta(days=1):
-                flag = False
-                break
+        link = "https://www.ctee.com.tw" + item['hyperLink']
+        title = item['title']
+        description = item['content']
 
-            link = "https://www.ctee.com.tw" + item['hyperLink']
-            title = item['title']
-            description = item['content']
+        tmp = {}
+        tmp['link'] = link
+        tmp['stocks'] = []
+        tmp['title'] = title
+        tmp['source'] = 'ctee'
+        tmp['releaseTime'] = publishTime.astimezone(tz=tz.UTC).isoformat()
+        tmp['feedType'] = 'news'
+        tmp['tags'] = []
+        tmp['description'] = description
 
-            tmp = {}
-            tmp['link'] = link
-            tmp['stocks'] = []
-            tmp['title'] = title
-            tmp['source'] = 'ctee'
-            tmp['releaseTime'] = publishTime.astimezone(tz=tz.UTC).isoformat()
-            tmp['feedType'] = 'news'
-            tmp['tags'] = []
-            tmp['description'] = description
-
-            data.append(tmp)
-            dataCount += 1
-
-        page += 1
-        if flag:
-            sleep(waitTime)
+        data.append(tmp)
+        dataCount += 1
 
     gc.collect()
     gc.disable()
