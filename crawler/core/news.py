@@ -219,38 +219,29 @@ def crawlNewsCtee(newsType: str = "industry"):
         "Referer": "https://www.ctee.com.tw/livenews/industry"
     }
 
-    now = datetime.now(tz=tz.gettz('Asia/Taipei'))
-
-    dataCount = 0
-    data = []
-
     url = f"https://www.ctee.com.tw/rss_web/livenews/{newsType}"
 
     result = requests.get(url, headers=headers, timeout=5)
-    jsdata = json.loads(result.text)
+    feed = feedparser.parse(result.text)
+    entries = feed['entries']
 
-    for _, item in enumerate(jsdata):
+    dataCount = 0
+    data = []
+    for _, e in enumerate(entries):
         publishTime = datetime.strptime(
-            item['publishDatetime'], '%Y-%m-%dT%H:%M:%S')
-        publishTime = publishTime.replace(tzinfo=tz.gettz('Asia/Taipei'))
-        if now - publishTime > timedelta(days=1):
-            flag = False
-            break
-
-        link = "https://www.ctee.com.tw" + item['hyperLink']
-        title = item['title']
-        description = item['content']
-
+            e['published'], '%Y-%m-%dT%H:%M:%S')
+        title = e['title']
+        link = e['link']
+        description = e['summary'].replace("\n", "")
         tmp = {}
         tmp['link'] = link
         tmp['stocks'] = []
         tmp['title'] = title
         tmp['source'] = 'ctee'
-        tmp['releaseTime'] = publishTime.astimezone(tz=tz.UTC).isoformat()
+        tmp['releaseTime'] = publishTime.isoformat()
         tmp['feedType'] = 'news'
         tmp['tags'] = []
         tmp['description'] = description
-
         data.append(tmp)
         dataCount += 1
 
