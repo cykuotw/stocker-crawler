@@ -224,7 +224,7 @@ def crawlNewsCtee(newsType: str = "industry"):
     dataCount = 0
     data = []
 
-    url = f"https://www.ctee.com.tw/api/livenews/{newsType}"
+    url = f"https://www.ctee.com.tw/rss_web/livenews/{newsType}"
 
     result = requests.get(url, headers=headers, timeout=5)
     jsdata = json.loads(result.text)
