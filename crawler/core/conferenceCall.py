@@ -31,7 +31,9 @@ def crawlConferenceCallInfo(exchange_type, dateTime_in) -> list:
                     "companyId": cells[0].text,
                     "companyName": cells[1].text,
                     "date": cells[2].text,
-                    "location": cells[4].text
+                    "location": cells[4].text,
+                    "description": cells[5].text,
+                    "file_name_chinese": cells[6].text
                 })
         else:
             date_range = cells[2].text.split(' 至 ')
@@ -47,6 +49,8 @@ def crawlConferenceCallInfo(exchange_type, dateTime_in) -> list:
                     "companyId": cells[0].text,
                     "companyName": cells[1].text,
                     "date": cells[2].text,
-                    "location": cells[4].text
+                    "location": cells[4].text,
+                    "description": cells[5].text,
+                    "file_name_chinese": cells[6].text
                 })
     return messages
