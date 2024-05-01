@@ -36,6 +36,14 @@ def updateConferenceCallInfo() -> None:
                 meeting_end_date = None
             else:
                 meeting_date, meeting_end_date = str(data[i]['date']).split(' 至 ')
+                
+                meeting_end_date_arr = meeting_end_date.split('/')
+                meeting_end_date_arr[0] = str(int(meeting_end_date_arr[0])+1911)
+                meeting_end_date = '/'.join(meeting_end_date_arr)
+
+            meeting_date_arr = meeting_date.split('/')
+            meeting_date_arr[0] = str(int(meeting_date_arr[0])+1911)
+            meeting_date = '/'.join(meeting_date_arr)
 
             postEarningsCall({
                 "stock_id": str(data[i]['companyId']),
