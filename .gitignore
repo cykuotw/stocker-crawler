@@ -2,6 +2,7 @@ __pycache__
 /venv
 /log
 /spikes
+/deployment
 .DS_store
 .vscode
 .env
