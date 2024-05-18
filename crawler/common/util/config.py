@@ -4,28 +4,49 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-STOCKER_URL = os.environ.get("SERVER_API_URL")
 
-CHAT_BOT_INFO = {
-    "telegram-message-url": os.environ.get("TELEGRAM_MESSAGE_URL"),
-    "telegram-chat-id": os.environ.get("TELEGRAM_CHAT_ID"),
+def getStockerConfig():
+    """
+    Get Stocker Server Config
+    """
+    return {
+        'STOCKER_URL': os.environ.get("SERVER_API_URL")
+    }
 
-    "slack": os.environ.get("SLACK_HOOK"),
 
-    'discord-logbot': os.environ.get("DISCORD_LOGBOT_HOOK"),
-    'discord-criticalinfobot': os.environ.get("DISCORD_CRITICALiNFOBOT_HOOK"),
-    'discord-concallbot': os.environ.get('DISCORD_CONCALLBOT_HOOK'),
-    'discord-volatilitybot': os.environ.get('DISCORD_VOLATILITY_HOOK'),
-}
+def getChatbotInfo():
+    """
+    Get Chatbot Config
+    """
+    return {
+        "telegram-message-url": os.environ.get("TELEGRAM_MESSAGE_URL"),
+        "telegram-chat-id": os.environ.get("TELEGRAM_CHAT_ID"),
 
-WEBHOOK = {
-    'slack': os.environ.get("SLACK_HOOK"),
-    'stocker': os.environ.get("STOCKER_HOOK"),
-    'gugugu': os.environ.get("GUGUGU_HOOK")
-}
+        "slack": os.environ.get("SLACK_HOOK"),
 
-YAHOO = {
-    'total-slices': int(os.environ.get("YAHOO_TOTAL_SLICE")),
-    'current-slices': int(os.environ.get("YAHOO_CURRENT_SLICE")),
-    'start-with': int(os.environ.get("YAHOO_START_WITH")),
-}
+        'discord-logbot': os.environ.get("DISCORD_LOGBOT_HOOK"),
+        'discord-criticalinfobot': os.environ.get("DISCORD_CRITICALiNFOBOT_HOOK"),
+        'discord-concallbot': os.environ.get('DISCORD_CONCALLBOT_HOOK'),
+        'discord-volatilitybot': os.environ.get('DISCORD_VOLATILITY_HOOK'),
+    }
+
+
+def getWebhookConfig():
+    """
+    Get Webhook Config
+    """
+    return {
+        'slack': os.environ.get("SLACK_HOOK"),
+        'stocker': os.environ.get("STOCKER_HOOK"),
+        'gugugu': os.environ.get("GUGUGU_HOOK")
+    }
+
+
+def getYahooConfig():
+    """
+    Get Yahoo Config
+    """
+    return {
+        'total-slices': int(os.environ.get("YAHOO_TOTAL_SLICE", "1")),
+        'current-slices': int(os.environ.get("YAHOO_CURRENT_SLICE", "5")),
+    }

@@ -5,7 +5,7 @@ import feedparser
 import requests
 
 from crawler.common.notifier import pushNewsMessge
-from crawler.common.util.config import YAHOO
+from crawler.common.util.config import getYahooConfig
 from crawler.common.util.server import getStockNoBasicInfo, updateNewsToServer
 
 
@@ -82,8 +82,9 @@ def updateDailyNewsYahoo():
     @Return:
         N/A
     """
-    totalSlices = YAHOO['total-slices']
-    currentSlices = YAHOO['current-slices']
+    config = getYahooConfig()
+    totalSlices = config['total-slices']
+    currentSlices = config['current-slices']
 
     pushNewsMessge(f"Yahoo crawler ({currentSlices}/{totalSlices}) start")
     try:
