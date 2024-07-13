@@ -2,14 +2,15 @@ import json
 
 import requests
 
-from crawler.common.util.config import CHAT_BOT_INFO
+from crawler.common.util.config import getChatbotInfo
 
 
 def push(content: str) -> None:
+    config = getChatbotInfo()
     requests.post(
-        url=CHAT_BOT_INFO["telegram-message-url"],
+        url=config["telegram-message-url"],
         data=json.dumps({
-            "chat_id": CHAT_BOT_INFO['telegram-chat-id'],
+            "chat_id": config['telegram-chat-id'],
             "parse_mode": "markdown",
             "text": content
         }),

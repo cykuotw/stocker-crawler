@@ -3,7 +3,7 @@ import json
 import requests
 
 from crawler.common.notifier import pushNewsMessge
-from crawler.common.util.config import STOCKER_URL
+from crawler.common.util.config import getStockerConfig
 
 
 def getStockNoBasicInfo(startWith: int = 0) -> list:
@@ -19,9 +19,11 @@ def getStockNoBasicInfo(startWith: int = 0) -> list:
     if startWith < 0 or startWith > 9:
         return []
 
-    url = f"{STOCKER_URL}/stock_number"
+    stockerURL = getStockerConfig()['STOCKER_URL']
+
+    url = f"{stockerURL}/stock_number"
     if startWith != 0:
-        url = f"{STOCKER_URL}/stock_number?stock_number_start_with={startWith}"
+        url = f"{stockerURL}/stock_number?stock_number_start_with={startWith}"
     res = requests.get(url, timeout=10)
     ids = None
 
@@ -46,7 +48,8 @@ def updateNewsToServer(data: list = None):
     if data is None or len(data) == 0:
         return
 
-    newsApi = f"{STOCKER_URL}/feed"
+    stockerURL = getStockerConfig()['STOCKER_URL']
+    newsApi = f"{stockerURL}/feed"
     for _, d in enumerate(data):
         try:
             requests.post(newsApi,

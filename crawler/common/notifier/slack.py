@@ -2,12 +2,13 @@ import json
 
 import requests
 
-from crawler.common.util.config import CHAT_BOT_INFO
+from crawler.common.util.config import getChatbotInfo
 
 
 def push(username: str, content: str) -> None:
+    config = getChatbotInfo()
     requests.post(
-        url=CHAT_BOT_INFO["slack"],
+        url=config["slack"],
         data=json.dumps({
             "username": username,
             "text": content
