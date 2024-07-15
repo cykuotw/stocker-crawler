@@ -22,12 +22,12 @@ def updateStockCommodity():
     serverStockCommodityApi = "{}/stock_commodity".format(stockerUrl)
     for index, row in data.iterrows():
         dataPayload = {}
-        if row["標準型證券股數"] in [2000, 100]:
-            if row["標準型證券股數"] == 2000:
+        if row["標準型證券股數/受益權單位"] in [2000, 100]:
+            if row["標準型證券股數/受益權單位"] == 2000:
                 dataPayload["stock_future"] = isinstance(row["是否為股票期貨標的"], str)
                 dataPayload["stock_option"] = isinstance(
                     row["是否為股票選擇權標的"], str)
-            elif row["標準型證券股數"] == 100:
+            elif row["標準型證券股數/受益權單位"] == 100:
                 dataPayload["small_stock_future"] = isinstance(
                     row["是否為股票期貨標的"], str)
 
