@@ -26,7 +26,7 @@ def dailyRoutineWork():
         for type in companyTypes:
             getBasicInfo(type)
             time.sleep(SLEEP_TIME + random.randrange(0, 4))
-        updateStockCommodity()
+        #updateStockCommodity()
         
         now = datetime.now()
         if now.month == 1:
