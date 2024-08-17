@@ -96,10 +96,10 @@ def crawlNewsCnyes(date: datetime = datetime.today(), market: str = "tw"):
 
             data.append(tmp)
 
-    res = {}
-    res["data_count"] = str(dataCount)
-    res["data"] = data
-    return res
+    # result = {}
+    # result['data_count'] = len(data)
+    # result['data'] = data
+    return data
 
 
 def updateDailyNewsCnyes(datetimeIn: datetime = datetime.today()):
@@ -119,7 +119,7 @@ def updateDailyNewsCnyes(datetimeIn: datetime = datetime.today()):
 
         for market in marketList:
             news = crawlNewsCnyes(datetimeIn, market)
-            updateNewsToServer(news['data'])
+            updateNewsToServer(news)
     except Exception as ex:
         pushNewsMessge(f"CNYES crawler work error: {ex}")
     pushNewsMessge("CNYES crawler done")

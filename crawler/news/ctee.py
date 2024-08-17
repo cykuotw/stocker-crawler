@@ -70,10 +70,10 @@ def crawlNewsCtee(newsType: str = "industry"):
     gc.collect()
     gc.disable()
 
-    res = {}
-    res["data_count"] = str(dataCount)
-    res["data"] = data
-    return res
+    # result = {}
+    # result['data_count'] = len(data)
+    # result['data'] = data
+    return data
 
 
 def updateDailyNewsCtee():
@@ -92,7 +92,6 @@ def updateDailyNewsCtee():
         newsType = ["industry", "tech", "world"]
         for t in newsType:
             news = crawlNewsCtee(t)
-            print(news["data_count"])
             updateNewsToServer(news)
     except Exception as ex:
         pushNewsMessge(f"CTEE crawler work error: {ex}")

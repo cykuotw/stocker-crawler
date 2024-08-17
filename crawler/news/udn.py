@@ -121,10 +121,10 @@ def crawlNewsUdn(newsType: str = "stock/head"):
     gc.collect()
     gc.disable()
 
-    res = {}
-    res["data_count"] = str(dataCount)
-    res["data"] = data
-    return res
+    # result = {}
+    # result['data_count'] = len(data)
+    # result['data'] = data
+    return data
 
 
 def updateDailyNewsUdn():
