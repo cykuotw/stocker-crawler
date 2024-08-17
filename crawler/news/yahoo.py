@@ -30,10 +30,15 @@ def crawlNewsYahoo(companyID: str = '2330'):
 
     url = f"https://tw.stock.yahoo.com/rss?s={companyID}"
 
-    waitTime = 0.1
+    waitTime = 5
     feed = None
-    for _ in range(5):
-        rsp = requests.get(url, headers, timeout=10)
+    for _ in range(3):
+        try:
+            rsp = requests.get(url, headers, timeout=10)
+        except requests.Timeout:
+            sleep(waitTime)
+            waitTime *= 2
+            continue
 
         # if status code is not 200 ok
         # retry 5 times max, each time extends wait time by 2x
@@ -64,11 +69,10 @@ def crawlNewsYahoo(companyID: str = '2330'):
 
         data.append(tmp)
 
-    result = {}
-    result['data_count'] = len(data)
-    result['data'] = data
-
-    return result
+    # result = {}
+    # result['data_count'] = len(data)
+    # result['data'] = data
+    return data
 
 
 def updateDailyNewsYahoo():
@@ -87,12 +91,13 @@ def updateDailyNewsYahoo():
     currentSlices = config['current-slices']
 
     pushNewsMessge(f"Yahoo crawler ({currentSlices}/{totalSlices}) start")
-    try:
-        idList = getStockNoBasicInfo()
-        start = round(len(idList) * (currentSlices-1) / totalSlices)
-        end = round(len(idList) * (currentSlices) / totalSlices)
-        idList = idList[start:end]
 
+    idList = getStockNoBasicInfo()
+    start = round(len(idList) * (currentSlices-1) / totalSlices)
+    end = round(len(idList) * (currentSlices) / totalSlices)
+    idList = idList[start:end]
+
+    try:
         for _, stockId in enumerate(idList):
             news = crawlNewsYahoo(str(stockId))
             updateNewsToServer(news)
