@@ -21,7 +21,7 @@ def pushLog(username: str, content: str) -> None:
     )
 
 
-def pushInfo(username: str, content: str) -> None:
+def pushInfo(username: str = 'Stocker每日重訊', content: str = "") -> None:
     """
     Push critical information
     """
