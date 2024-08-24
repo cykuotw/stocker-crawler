@@ -30,14 +30,18 @@ def crawlNewsYahoo(companyID: str = '2330'):
 
     url = f"https://tw.stock.yahoo.com/rss?s={companyID}"
 
-    waitTime = 5
+    waitTime = 1  # second
+    i, maxRetry = 0, 3
+    done = False
     feed = None
-    for _ in range(3):
+
+    while not done and i < maxRetry:
         try:
             rsp = requests.get(url, headers, timeout=10)
         except requests.Timeout:
             sleep(waitTime)
             waitTime *= 2
+            i += 1
             continue
 
         # if status code is not 200 ok
@@ -45,10 +49,11 @@ def crawlNewsYahoo(companyID: str = '2330'):
         if rsp.status_code != 200:
             sleep(waitTime)
             waitTime *= 2
+            i += 1
             continue
 
         feed = feedparser.parse(rsp.text)
-        break
+        done = True
 
     if feed is None:
         return {}
@@ -69,9 +74,6 @@ def crawlNewsYahoo(companyID: str = '2330'):
 
         data.append(tmp)
 
-    # result = {}
-    # result['data_count'] = len(data)
-    # result['data'] = data
     return data
 
 
@@ -101,6 +103,7 @@ def updateDailyNewsYahoo():
         for _, stockId in enumerate(idList):
             news = crawlNewsYahoo(str(stockId))
             updateNewsToServer(news)
+            sleep(0.005)
 
     except Exception as ex:
         pushNewsMessge(f"Yahoo crawler error: {ex}")
