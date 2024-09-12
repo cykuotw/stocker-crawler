@@ -140,7 +140,7 @@ def updateCriticalInfo() -> None:
         requests.post(url, data=json.dumps(infoJson), timeout=10)
 
     # push to discord everyday between 20:00 to 22:00
-    if datetime.now().hour < 20 or datetime.now().hour > 22:
+    if datetime.now(tw).hour < 20 or datetime.now(tw).hour > 22:
         pushCriticalInfoMessage("crawler work done.")
         return
 
