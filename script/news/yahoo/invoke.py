@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import threading
 
@@ -24,13 +25,28 @@ def task(totalSlice: int, currentSlice: int):
 
 
 def run(event, context):
-    totalSlice = int(os.environ["YAHOO_TOTAL_SLICE"])
+    RESERVED_CNT = 10
 
-    threads = []
-    for i in range(totalSlice):
-        t = threading.Thread(target=task, args=[totalSlice, i+1])
-        t.start()
-        threads.append(t)
+    total = totalSlice = int(os.environ["YAHOO_TOTAL_SLICE"])
 
-    for t in threads:
-        t.join()
+    chunkCnt = math.ceil(totalSlice/RESERVED_CNT)
+    chunks = []
+    for i in range(chunkCnt):
+        curr = RESERVED_CNT
+        if i == chunkCnt-1:
+            curr = total
+        chunks.append(curr)
+        total -= RESERVED_CNT
+
+    offset = 0
+    for cnt in chunks:
+        threads = []
+        for i in range(cnt):
+            t = threading.Thread(target=task, args=[totalSlice, i+1+offset])
+            t.start()
+            threads.append(t)
+
+        for t in threads:
+            t.join()
+
+        offset += cnt
