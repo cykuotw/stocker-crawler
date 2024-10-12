@@ -37,7 +37,7 @@ def crawlNewsYahoo(companyID: str = '2330'):
 
     while not done and i < maxRetry:
         try:
-            rsp = requests.get(url, headers, timeout=10)
+            rsp = requests.get(url, headers, timeout=5)
         except requests.Timeout:
             sleep(waitTime)
             waitTime *= 2
