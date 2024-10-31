@@ -38,7 +38,7 @@ def crawlOtcPeRatioAnalysis(date_time):
     dataset = json.loads(res.text)
 
     result = []
-    for data in dataset['aaData']:
+    for data in dataset['tables'][0]['data']:
         tmp = {
             "stock_id": data[0],
             "本益比": None if data[2] == "N/A" else data[2],
