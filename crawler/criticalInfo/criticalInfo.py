@@ -1,7 +1,6 @@
 import json
 import re
 from datetime import datetime
-from random import randint
 
 import pytz
 import requests
@@ -51,7 +50,7 @@ def crawlCriticalInfo():
             seqNum = formVar[1]
             title = rowElements[4].getText().replace('\r\n', '')
 
-            i = randint(1, 199)
+            i = formStockNum[0:2]
             urlLink = (
                 "https://mops.twse.com.tw/mops/web/t05st02?step=1&off=1&firstin=1&"
                 + f"TYPEK={exchangeType}&"
