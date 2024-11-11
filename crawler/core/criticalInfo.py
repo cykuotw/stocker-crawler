@@ -42,7 +42,7 @@ def crawlDataUseBs4():
                 seqNum = formVar[1]
                 title = rowElements[4].getText().replace('\r\n', '')
 
-                i = randint(1, 199)
+                i = formStockNum[0:2]
                 urlLink = (
                     "https://mops.twse.com.tw/mops/web/t05st02?"
                     + "step=1&"
