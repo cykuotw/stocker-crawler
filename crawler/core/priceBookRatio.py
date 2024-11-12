@@ -17,9 +17,9 @@ def crawlSiiPeRatioAnalysis(date_time):
         for data in dataset['data']:
             tmp = {
                 "stock_id": data[0],
-                "本益比": None if data[4] == "-" else data[4],
-                "殖利率": data[2],
-                "股價淨值比": data[5]
+                "本益比": None if data[5] == "-" else data[5],
+                "殖利率": data[3],
+                "股價淨值比": data[6]
             }
             result.append(tmp)
         return result
