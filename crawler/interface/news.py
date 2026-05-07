@@ -47,7 +47,134 @@ def updateDailyNewsYahoo():
             f"crawler work done. \nTotal time: {(time.time() - start)/60:.2f} min. \nTotal update fails: {failCount}")
 
 
-def updateDailyNews(datetimeIn: datetime = datetime.today()):
+def pushNewsMessge(message: str = ""):
+    """
+    @Description:
+        推送log\n
+        push log messges\n
+    @Param:
+        message => str (default: "")
+    @Return:
+        N/A
+    """
+    if message == "":
+        return
+
+    pushSlackMessage(
+        "Stocker每日新聞",
+        f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {message}")
+    pushDiscordLog(
+        "Stocker每日新聞",
+        f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {message}")
+
+
+def updateNewsToServer(data: list = None):
+    """
+    @Description:
+        推送當日新聞至Stocker伺服器\n
+        Update daily news stocker server\n
+    @Param:
+        data => list of dict (default: None)
+    @Return:
+        N/A
+    """
+    if data is None or len(data) == 0:
+        return
+
+    newsApi = f"{stockerUrl}/feed"
+    for _, d in enumerate(data):
+        try:
+            requests.post(newsApi,
+                          data=json.dumps(d),
+                          timeout=(2, 5))
+        except Exception as ex:
+            pushNewsMessge(f"stocker server error: {ex}")
+
+
+def updateDailyNewsCnyes(datetimeIn: datetime = datetime.today()):
+    """
+    @Description:
+        更新每日鉅亨網新聞\n
+        Update all daily news related to tw stock market
+        from cnyes to stocker server\n
+    @Param:
+        datetimeIn => datetime.datetime (default: today)
+    @Return:
+        N/A
+    """
+    try:
+        marketList = ["tw", "us"]
+
+        for market in marketList:
+            news = crawlNewsCnyes(datetimeIn, market)
+            updateNewsToServer(news['data'])
+    except Exception as ex:
+        pushNewsMessge(f"CNYES crawler work error: {ex}")
+
+
+def updateDailyNewsCtee():
+    """
+    @Description:
+        更新每日工商日報新聞\n
+        Update all daily news related to tw stock market
+        from ctee to stocker server\n
+    @Param:
+        N/A
+    @Return:
+        N/A
+    """
+    try:
+        newsType = ["industry", "tech", "world"]
+        for t in newsType:
+            news = crawlNewsCtee(t)
+            updateNewsToServer(news)
+    except Exception as ex:
+        pushNewsMessge(f"CTEE crawler work error: {ex}")
+
+
+def updateDailyNewsUdn():
+    """
+    @Description:
+        更新每日經濟日報新聞\n
+        Update all daily news related to tw stock market
+        from udn to stocker server\n
+    @Param:
+        N/A
+    @Return:
+        N/A
+    """
+    try:
+        newsType = ["stock/head", "stock/sii", "stock/otc",
+                    "ind/head", "int/head"]
+        for t in newsType:
+            news = crawlNewsUdn(t)
+            updateNewsToServer(news)
+    except Exception as ex:
+        pushNewsMessge(f"UDN crawler work error: {ex}")
+
+
+def updateDailyNewsYahoo():
+    """
+    @Description:
+        更新每日Yahoo新聞\n
+        Update all daily news related to tw stock market
+        from yahoo to stocker server\n
+    @Param:
+        N/A
+    @Return:
+        N/A
+    """
+    try:
+        idList = getStockNoBasicInfo()
+
+        for _, stockId in enumerate(idList):
+            news = crawlNewsYahoo(str(stockId))
+            updateNewsToServer(news)
+    except Exception as ex:
+        pushNewsMessge(f"Yahoo crawler work error: {ex}")
+
+
+def updateDailyNews():
     """
     @Description:
         更新每日鉅亨網/工商日報/經濟日報/Yahoo的所有新聞\n
@@ -58,79 +185,13 @@ def updateDailyNews(datetimeIn: datetime = datetime.today()):
     @Return:
         N/A
     """
+    pushNewsMessge("crawler work start")
 
-    pushLog("Stocker每日新聞", "crawler work start")
+    updateDailyNewsCnyes()
+    updateDailyNewsCtee()
+    updateDailyNewsUdn()
+    updateDailyNewsYahoo()
 
-    try:
-        # Get CNYES News
-        marketList = ["tw", "us"]
-
-        for market in marketList:
-            data = crawlNewsCnyes(datetimeIn, market)
-            failList = updateNewsToServer(data['data'])
-            if failList:
-                for _, item in enumerate(failList):
-                    logger.log(logging.WARNING, item)
-    except Exception as ex:
-        pushLog("Stocker每日新聞", f"CNYES crawler work error: {ex}")
-
-    try:
-        # Get Udn News
-        newsList = ["stock/head", "stock/sii", "stock/otc",
-                    "ind/head", "int/head"]
-        for news in newsList:
-            data = crawlNewsUdn(news)
-            failList = updateNewsToServer(data['data'])
-            if failList:
-                for _, item in enumerate(failList):
-                    logger.log(logging.WARNING, item)
-    except Exception as ex:
-        pushLog("Stocker每日新聞", f"UDN crawler work error: {ex}")
-
-    updateNewsToServer(data)
-    pushLog("Stocker每日新聞", "crawler work done")
-
-
-def pushLog(title: str = "Stocker每日新聞", msg: str = "") -> None:
-    """
-    @Description:
-        推送Log訊息\n
-        Push log message\n
-    @Param:
-        title: str, title of the message (default: "Stocker每日新聞")
-        msg: str, message content (default: "")
-    @Return:
-        N/A
-    """
-    pushSlackMessage(
-        title, f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {msg}")
-    pushDiscordLog(
-        title, f"{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} {msg}")
-
-
-def updateNewsToServer(data: list = None) -> list:
-    """
-    @Description:
-        推送當日新聞到Stocker server\n
-        Push daily news to the Stocker server\n
-    @Param:
-        data: list of maps (default: [])
-    @Return:
-        failList: list of update fails
-    """
-    if not data:
-        return []
-
-    failList = []
-
-    # Update to stocker server
-    newsApi = f"{stockerUrl}/feed"
-    for _, item in enumerate(data):
-        try:
-            rsp = requests.post(newsApi, data=json.dumps(item), timeout=10)
-            if rsp.status_code < 200 or rsp.status_code > 299:
-                failList.append((rsp, item))
-        except Exception as ex:
-            pushLog("Stocker每日新聞", f"server error: {ex}")
+    pushNewsMessge("crawler work stop")
 
     return failList
