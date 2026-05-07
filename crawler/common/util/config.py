@@ -25,6 +25,7 @@ def getChatbotInfo():
         "slack": os.environ.get("SLACK_HOOK"),
 
         'discord-logbot': os.environ.get("DISCORD_LOGBOT_HOOK"),
+        'discord-errorbot': os.environ.get("DISCORD_ERROR_HOOK"),
         'discord-criticalinfobot': os.environ.get("DISCORD_CRITICALiNFOBOT_HOOK"),
         'discord-concallbot': os.environ.get('DISCORD_CONCALLBOT_HOOK'),
         'discord-volatilitybot': os.environ.get('DISCORD_VOLATILITY_HOOK'),

@@ -21,6 +21,22 @@ def pushLog(username: str, content: str) -> None:
     )
 
 
+def pushError(username: str, content: str) -> None:
+    """
+    Push errors
+    """
+    config = getChatbotInfo()
+    requests.post(
+        url=config["discord-errorbot"],
+        data=json.dumps({
+            "username": username,
+            "content": content
+        }),
+        headers={"content-type": "application/json"},
+        timeout=10
+    )
+
+
 def pushInfo(username: str = 'Stocker每日重訊', content: str = "") -> None:
     """
     Push critical information

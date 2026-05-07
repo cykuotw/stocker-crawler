@@ -6,7 +6,12 @@ import pytz
 import requests
 from bs4 import BeautifulSoup
 
-from crawler.common.notifier import discord, pushCriticalInfoMessage, telegram
+from crawler.common.notifier import (
+    discord,
+    pushCriticalInfoMessage,
+    pushErrorMessage,
+    telegram,
+)
 from crawler.common.util.config import getStockerConfig
 
 with open('configs/critical_info_filter.json', encoding='utf-8') as criticalInfoReader:
@@ -22,12 +27,13 @@ def crawlCriticalInfo():
     @Return:
         list (critical information in json)
     """
-    exchangeTypes = ['sii', 'otc', 'rotc', 'pub']
+    # exchangeTypes = ['sii', 'otc', 'rotc', 'pub']
+    exchangeTypes = ['sii', 'otc', 'rotc']
     result = []
 
     for exchangeType in exchangeTypes:
         res = requests.post(
-            'https://mops.twse.com.tw/mops/web/ajax_t05sr01_1',
+            'https://mopsov.twse.com.tw/mops/web/ajax_t05sr01_1',
             data={
                 'encodeURIComponent': 1,
                 'TYPEK': exchangeType,
@@ -52,16 +58,17 @@ def crawlCriticalInfo():
 
             i = formStockNum[0:2]
             urlLink = (
-                "https://mops.twse.com.tw/mops/web/t05st02?step=1&off=1&firstin=1&"
-                + f"TYPEK={exchangeType}&"
-                + f"i={i}&"
-                + f"h{i}0={rowElements[1].getText()}&"
-                + f"h{i}1={formStockNum}&"
-                + f"h{i}2={formDate}&"
-                + f"h{i}3={formTime}&"
-                + f"h{i}4={title}&"
-                + f"h{i}5={seqNum}&pgname=t05st02"
+                "https://mopsov.twse.com.tw/mops/web/t05st02?step=1&off=1&firstin=1&"
+                f"TYPEK={exchangeType}&"
+                f"i={i}&"
+                f"h{i}0={rowElements[1].getText()}&"
+                f"h{i}1={formStockNum}&"
+                f"h{i}2={formDate}&"
+                f"h{i}3={formTime}&"
+                f"h{i}4={title}&"
+                f"h{i}5={seqNum}&pgname=t05st02"
             )
+
             result.append({
                 '股號': rowElements[0].getText(),
                 '公司名稱': rowElements[1].getText(),
@@ -89,7 +96,7 @@ def updateCriticalInfo() -> None:
     try:
         data = crawlCriticalInfo()
     except Exception as e:
-        pushCriticalInfoMessage(f"crawler error: {e}")
+        pushErrorMessage(f"crawler error: {e}", crawler="criticalInfo")
         pushCriticalInfoMessage("crawler work done.")
         return
 
@@ -118,6 +125,7 @@ def updateCriticalInfo() -> None:
     url = f"{stockerURL}/feed"
 
     tw = pytz.timezone('Asia/Taipei')
+    failed_feeds = []
     for info in data:
         dateArr = info['發言日期'].split('/')
         dateArr[0] = str(int(dateArr[0])+1911)
@@ -136,7 +144,37 @@ def updateCriticalInfo() -> None:
             'stocks': [info['股號']],
             'source': 'mops'
         }
-        requests.post(url, data=json.dumps(infoJson), timeout=10)
+
+        try:
+            response = requests.post(
+                url,
+                data=json.dumps(infoJson),
+                headers={"Content-Type": "application/json"},
+                timeout=10,
+            )
+
+            if not response.ok:
+                failed_feeds.append({
+                    'stock': infoJson['stocks'][0],
+                    'title': infoJson['title'],
+                    'status': response.status_code,
+                    'message': response.text,
+                })
+        except requests.RequestException as e:
+            print(f"request error: {e}")
+            failed_feeds.append({
+                'stock': infoJson['stocks'][0],
+                'title': infoJson['title'],
+                'status': 'request-error',
+                'message': str(e),
+            })
+
+    if failed_feeds:
+        pushErrorMessage(
+            "crawler post feed failed",
+            crawler="criticalInfo",
+            details=failed_feeds,
+        )
 
     # push to discord everyday between 20:00 to 22:00
     if datetime.now(tw).hour < 20 or datetime.now(tw).hour > 22:
