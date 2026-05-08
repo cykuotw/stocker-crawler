@@ -52,8 +52,11 @@ def updateNewsToServer(data: list = None):
     newsApi = f"{stockerURL}/feed"
     for _, d in enumerate(data):
         try:
-            requests.post(newsApi,
-                          data=json.dumps(d),
-                          timeout=10)
+            requests.post(
+                newsApi,
+                data=json.dumps(d),
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
         except Exception as ex:
             pushNewsMessge(f"stocker server error: {ex}")
