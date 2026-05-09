@@ -1,9 +1,10 @@
+import asyncio
 import json
 import re
 from datetime import datetime
 
+import aiohttp
 import pytz
-import requests
 from bs4 import BeautifulSoup
 
 from crawler.common.notifier import (
@@ -18,7 +19,51 @@ with open('configs/critical_info_filter.json', encoding='utf-8') as criticalInfo
     criticalInfo = json.loads(criticalInfoReader.read())
 
 
-def crawlCriticalInfo():
+def parseCriticalInfoHtml(html: str, exchangeType: str) -> list:
+    soup = BeautifulSoup(html, 'html.parser')
+    table = soup.findChildren('table')
+    if len(table) == 1:
+        return []
+    rows = table[1].findChildren('tr')
+
+    result = []
+    for i in range(1, len(rows)):
+        rowElements = rows[i].findChildren('td')
+        formVar = rowElements[5].findChildren(
+            'input')[0]['onclick'].split("'")
+        formStockNum = re.sub('[a-zA-Z]', '', formVar[7])
+        formDate = formVar[5]
+        formTime = formVar[3]
+        seqNum = formVar[1]
+        title = rowElements[4].getText().replace('\r\n', '')
+
+        i = formStockNum[0:2]
+        urlLink = (
+            "https://mopsov.twse.com.tw/mops/web/t05st02?step=1&off=1&firstin=1&"
+            f"TYPEK={exchangeType}&"
+            f"i={i}&"
+            f"h{i}0={rowElements[1].getText()}&"
+            f"h{i}1={formStockNum}&"
+            f"h{i}2={formDate}&"
+            f"h{i}3={formTime}&"
+            f"h{i}4={title}&"
+            f"h{i}5={seqNum}&pgname=t05st02"
+        )
+
+        result.append({
+            '股號': rowElements[0].getText(),
+            '公司名稱': rowElements[1].getText(),
+            '發言日期': rowElements[2].getText(),
+            '發言時間': rowElements[3].getText(),
+            '主旨': title,
+            'link': urlLink,
+            'type': exchangeType
+        })
+
+    return result
+
+
+async def crawlCriticalInfo(session: aiohttp.ClientSession = None):
     """
     @Description:
         Crawl everyday critical infomation
@@ -29,59 +74,49 @@ def crawlCriticalInfo():
     """
     # exchangeTypes = ['sii', 'otc', 'rotc', 'pub']
     exchangeTypes = ['sii', 'otc', 'rotc']
-    result = []
 
-    for exchangeType in exchangeTypes:
-        res = requests.post(
+    async def crawlExchangeType(
+        activeSession: aiohttp.ClientSession,
+        exchangeType: str,
+    ):
+        async with activeSession.post(
             'https://mopsov.twse.com.tw/mops/web/ajax_t05sr01_1',
             data={
                 'encodeURIComponent': 1,
                 'TYPEK': exchangeType,
                 'step': 0
-            }, timeout=10)
+            },
+            timeout=aiohttp.ClientTimeout(total=10),
+        ) as res:
+            html = await res.text()
 
-        soup = BeautifulSoup(res.text, 'html.parser')
-        table = soup.findChildren('table')
-        if len(table) == 1:
-            continue
-        rows = table[1].findChildren('tr')
+        return await asyncio.to_thread(
+            parseCriticalInfoHtml,
+            html,
+            exchangeType,
+        )
 
-        for i in range(1, len(rows)):
-            rowElements = rows[i].findChildren('td')
-            formVar = rowElements[5].findChildren(
-                'input')[0]['onclick'].split("'")
-            formStockNum = re.sub('[a-zA-Z]', '', formVar[7])
-            formDate = formVar[5]
-            formTime = formVar[3]
-            seqNum = formVar[1]
-            title = rowElements[4].getText().replace('\r\n', '')
+    closeSession = session is None
+    if closeSession:
+        session = aiohttp.ClientSession()
 
-            i = formStockNum[0:2]
-            urlLink = (
-                "https://mopsov.twse.com.tw/mops/web/t05st02?step=1&off=1&firstin=1&"
-                f"TYPEK={exchangeType}&"
-                f"i={i}&"
-                f"h{i}0={rowElements[1].getText()}&"
-                f"h{i}1={formStockNum}&"
-                f"h{i}2={formDate}&"
-                f"h{i}3={formTime}&"
-                f"h{i}4={title}&"
-                f"h{i}5={seqNum}&pgname=t05st02"
-            )
+    try:
+        exchangeResults = await asyncio.gather(*[
+            crawlExchangeType(session, exchangeType)
+            for exchangeType in exchangeTypes
+        ])
+    finally:
+        if closeSession:
+            await session.close()
 
-            result.append({
-                '股號': rowElements[0].getText(),
-                '公司名稱': rowElements[1].getText(),
-                '發言日期': rowElements[2].getText(),
-                '發言時間': rowElements[3].getText(),
-                '主旨': title,
-                'link': urlLink,
-                'type': exchangeType
-            })
+    result = []
+    for exchangeResult in exchangeResults:
+        result.extend(exchangeResult)
+
     return result
 
 
-def updateCriticalInfo() -> None:
+async def updateCriticalInfoAsync() -> None:
     """
     @Description:
         Update everyday critical infomation
@@ -94,7 +129,8 @@ def updateCriticalInfo() -> None:
 
     data = []
     try:
-        data = crawlCriticalInfo()
+        async with aiohttp.ClientSession() as session:
+            data = await crawlCriticalInfo(session=session)
     except Exception as e:
         pushErrorMessage(f"crawler error: {e}", crawler="criticalInfo")
         pushCriticalInfoMessage("crawler work done.")
@@ -133,7 +169,8 @@ def updateCriticalInfo() -> None:
 
     tw = pytz.timezone('Asia/Taipei')
     failed_feeds = []
-    for info in data:
+
+    async def postFeed(session: aiohttp.ClientSession, info: dict):
         dateArr = info['發言日期'].split('/')
         dateArr[0] = str(int(dateArr[0])+1911)
 
@@ -153,21 +190,22 @@ def updateCriticalInfo() -> None:
         }
 
         try:
-            response = requests.post(
+            async with session.post(
                 url,
-                data=json.dumps(infoJson),
+                json=infoJson,
                 headers=headers,
-                timeout=10,
-            )
+                timeout=aiohttp.ClientTimeout(total=10),
+            ) as response:
+                responseText = await response.text()
 
-            if not response.ok:
-                failed_feeds.append({
-                    'stock': infoJson['stocks'][0],
-                    'title': infoJson['title'],
-                    'status': response.status_code,
-                    'message': response.text,
-                })
-        except requests.RequestException as e:
+                if not 200 <= response.status < 300:
+                    failed_feeds.append({
+                        'stock': infoJson['stocks'][0],
+                        'title': infoJson['title'],
+                        'status': response.status,
+                        'message': responseText,
+                    })
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             print(f"request error: {e}")
             failed_feeds.append({
                 'stock': infoJson['stocks'][0],
@@ -175,6 +213,12 @@ def updateCriticalInfo() -> None:
                 'status': 'request-error',
                 'message': str(e),
             })
+
+    async with aiohttp.ClientSession() as session:
+        await asyncio.gather(*[
+            postFeed(session, info)
+            for info in data
+        ])
 
     if failed_feeds:
         pushErrorMessage(
@@ -206,12 +250,26 @@ def updateCriticalInfo() -> None:
         cnt += 1
 
         if cnt == 5 or (index == len(data)-1 and cnt != 0):
-            discord.pushInfo(content=content)
-            telegram.push(content)
+            await asyncio.gather(
+                asyncio.to_thread(discord.pushInfo, content=content),
+                asyncio.to_thread(telegram.push, content),
+            )
             content = ""
             cnt = 0
 
     pushCriticalInfoMessage("crawler work done.")
+
+
+def updateCriticalInfo() -> None:
+    """
+    @Description:
+        Update everyday critical infomation
+    @Parameter:
+        N/A
+    @Return:
+        N/A
+    """
+    asyncio.run(updateCriticalInfoAsync())
 
 
 def toStringExchageType(exchangeType: str = 'sii') -> str:

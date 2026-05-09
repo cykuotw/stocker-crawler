@@ -1,10 +1,12 @@
+import asyncio
 import calendar
 import gc
 import json
 from datetime import datetime, timedelta
+from typing import Optional
 
+import aiohttp
 import pytz
-import requests
 from bs4 import BeautifulSoup
 from dateutil import tz
 
@@ -12,7 +14,10 @@ from crawler.common.notifier import pushNewsMessge
 from crawler.common.util.server import updateNewsToServer
 
 
-def crawlNewsUdn(newsType: str = "stock/head"):
+async def crawlNewsUdn(
+    newsType: str = "stock/head",
+    session: Optional[aiohttp.ClientSession] = None,
+):
     """
     @Description:
         爬取經濟日報產業版每日新聞\n
@@ -57,69 +62,82 @@ def crawlNewsUdn(newsType: str = "stock/head"):
     pageNo = 1
     flag = True
 
-    while flag and pageNo < 100:
-        url = ""
-        if newsType == "stock/head":
-            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/5607"
-        elif newsType == "stock/sii":
-            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/5710"
-        elif newsType == "stock/otc":
-            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/11074"
-        elif newsType == "ind/head":
-            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5591/5612"
-        elif newsType == "int/head":
-            url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5588/5599"
+    closeSession = session is None
+    if closeSession:
+        session = aiohttp.ClientSession()
 
-        result = requests.get(url, headers, timeout=(2, 15))
-        result.encoding = 'utf-8'
+    try:
+        while flag and pageNo < 100:
+            url = ""
+            if newsType == "stock/head":
+                url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/5607"
+            elif newsType == "stock/sii":
+                url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/5710"
+            elif newsType == "stock/otc":
+                url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5590/11074"
+            elif newsType == "ind/head":
+                url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5591/5612"
+            elif newsType == "int/head":
+                url = f"https://money.udn.com/money/get_article/{pageNo}/1001/5588/5599"
 
-        liList = BeautifulSoup(result.text, 'html.parser').find_all('li')
-        for _, li in enumerate(liList):
-            title = li.find('a').get('title').strip()
-            link = f"https://money.udn.com{li.find('a').get('href')}"
-            publishDate = todayTmp.replace(
-                hour=int(li.find('span').string[:2]),
-                minute=int(li.find('span').string[-2:]),
-                second=0, microsecond=0).astimezone(tz=pytz.timezone('Asia/Taipei'))
+            async with session.get(
+                url,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=15, sock_connect=2),
+            ) as result:
+                text = await result.text(encoding='utf-8')
 
-            diff = today - publishDate
-            # publish time cross 12 am
-            if pageNo > 2 and diff < timedelta(days=0):
-                if today.day-1 <= 0:
-                    publishDate = publishDate.replace(
-                        month=today.month-1,
-                        day=calendar.monthrange(today.year, today.month-1)[1])
-                else:
-                    publishDate = publishDate.replace(day=today.day-1)
+            liList = await asyncio.to_thread(
+                lambda: BeautifulSoup(text, 'html.parser').find_all('li')
+            )
+            for _, li in enumerate(liList):
+                title = li.find('a').get('title').strip()
+                link = f"https://money.udn.com{li.find('a').get('href')}"
+                publishDate = todayTmp.replace(
+                    hour=int(li.find('span').string[:2]),
+                    minute=int(li.find('span').string[-2:]),
+                    second=0, microsecond=0).astimezone(tz=pytz.timezone('Asia/Taipei'))
+
                 diff = today - publishDate
-            # publish time is eariler yesterday's current time
-            if pageNo != 1 and (prevTmp-publishDate) < timedelta(days=0):
-                flag = False
-                break
+                # publish time cross 12 am
+                if pageNo > 2 and diff < timedelta(days=0):
+                    if today.day-1 <= 0:
+                        publishDate = publishDate.replace(
+                            month=today.month-1,
+                            day=calendar.monthrange(today.year, today.month-1)[1])
+                    else:
+                        publishDate = publishDate.replace(day=today.day-1)
+                    diff = today - publishDate
+                # publish time is eariler yesterday's current time
+                if pageNo != 1 and (prevTmp-publishDate) < timedelta(days=0):
+                    flag = False
+                    break
 
-            if diff < timedelta(days=1):
-                dataCount += 1
-                publishDate = publishDate.astimezone(tz=pytz.utc)
+                if diff < timedelta(days=1):
+                    dataCount += 1
+                    publishDate = publishDate.astimezone(tz=pytz.utc)
 
-                tmp = {}
-                tmp['link'] = link
-                tmp['stocks'] = []
-                tmp['title'] = title
-                tmp['source'] = 'money'
-                tmp['releaseTime'] = publishDate.isoformat()
-                tmp['feedType'] = 'news'
-                tmp['tags'] = []
-                tmp['description'] = ''
+                    tmp = {}
+                    tmp['link'] = link
+                    tmp['stocks'] = []
+                    tmp['title'] = title
+                    tmp['source'] = 'money'
+                    tmp['releaseTime'] = publishDate.isoformat()
+                    tmp['feedType'] = 'news'
+                    tmp['tags'] = []
+                    tmp['description'] = ''
 
-                data.append(tmp)
-                prevTmp = publishDate
-            else:
-                flag = False
-                break
-        pageNo += 1
-
-    gc.collect()
-    gc.disable()
+                    data.append(tmp)
+                    prevTmp = publishDate
+                else:
+                    flag = False
+                    break
+            pageNo += 1
+    finally:
+        if closeSession:
+            await session.close()
+        gc.collect()
+        gc.disable()
 
     # result = {}
     # result['data_count'] = len(data)
@@ -127,7 +145,7 @@ def crawlNewsUdn(newsType: str = "stock/head"):
     return data
 
 
-def updateDailyNewsUdn():
+async def updateDailyNewsUdnAsync():
     """
     @Description:
         更新每日經濟日報新聞\n
@@ -142,9 +160,33 @@ def updateDailyNewsUdn():
     try:
         newsType = ["stock/head", "stock/sii", "stock/otc",
                     "ind/head", "int/head"]
-        for t in newsType:
-            news = crawlNewsUdn(t)
-            updateNewsToServer(news)
+
+        async def updateTypeNews(
+            t: str,
+            session: aiohttp.ClientSession,
+        ):
+            news = await crawlNewsUdn(t, session=session)
+            await updateNewsToServer(news, session=session)
+
+        async with aiohttp.ClientSession() as session:
+            await asyncio.gather(*[
+                updateTypeNews(t, session)
+                for t in newsType
+            ])
     except Exception as ex:
         pushNewsMessge(f"UDN crawler work error: {ex}")
     pushNewsMessge("UDN crawler done")
+
+
+def updateDailyNewsUdn():
+    """
+    @Description:
+        更新每日經濟日報新聞\n
+        Update all daily news related to tw stock market
+        from udn to stocker server\n
+    @Param:
+        N/A
+    @Return:
+        N/A
+    """
+    asyncio.run(updateDailyNewsUdnAsync())

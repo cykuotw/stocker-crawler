@@ -1,5 +1,6 @@
 import json
 
+import aiohttp
 import requests
 
 from crawler.common.notifier import pushNewsMessge
@@ -35,7 +36,10 @@ def getStockNoBasicInfo(startWith: int = 0) -> list:
     return ids
 
 
-def updateNewsToServer(data: list = None):
+async def updateNewsToServer(
+    data: list = None,
+    session: aiohttp.ClientSession = None,
+):
     """
     @Description:
         推送當日新聞至Stocker伺服器\n
@@ -57,14 +61,22 @@ def updateNewsToServer(data: list = None):
         "Authorization": f"Bearer {stockerBearerToken}",
     }
 
-    newsApi = f"{stockerURL}/feed"
-    for _, d in enumerate(data):
-        try:
-            requests.post(
-                newsApi,
-                data=json.dumps(d),
-                headers=headers,
-                timeout=10
-            )
-        except Exception as ex:
-            pushNewsMessge(f"stocker server error: {ex}")
+    async def postNews(active_session: aiohttp.ClientSession):
+        newsApi = f"{stockerURL}/feed"
+        for _, d in enumerate(data):
+            try:
+                async with active_session.post(
+                    newsApi,
+                    json=d,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as res:
+                    await res.read()
+            except Exception as ex:
+                pushNewsMessge(f"stocker server error: {ex}")
+
+    if session is None:
+        async with aiohttp.ClientSession() as active_session:
+            await postNews(active_session)
+    else:
+        await postNews(session)

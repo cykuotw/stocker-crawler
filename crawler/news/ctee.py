@@ -1,15 +1,20 @@
+import asyncio
 import gc
 import json
 from datetime import datetime
+from typing import Optional
 
+import aiohttp
 import feedparser
-import requests
 
 from crawler.common.notifier import pushNewsMessge
 from crawler.common.util.server import updateNewsToServer
 
 
-def crawlNewsCtee(newsType: str = "industry"):
+async def crawlNewsCtee(
+    newsType: str = "industry",
+    session: Optional[aiohttp.ClientSession] = None,
+):
     """
     @Description:
         爬取工商時報科技版每日新聞\n
@@ -43,8 +48,22 @@ def crawlNewsCtee(newsType: str = "industry"):
 
     url = f"https://www.ctee.com.tw/rss_web/livenews/{newsType}"
 
-    result = requests.get(url, headers=headers, timeout=5)
-    feed = feedparser.parse(result.text)
+    closeSession = session is None
+    if closeSession:
+        session = aiohttp.ClientSession()
+
+    try:
+        async with session.get(
+            url,
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(total=5),
+        ) as result:
+            text = await result.text()
+        feed = await asyncio.to_thread(feedparser.parse, text)
+    finally:
+        if closeSession:
+            await session.close()
+
     entries = feed['entries']
 
     dataCount = 0
@@ -76,7 +95,7 @@ def crawlNewsCtee(newsType: str = "industry"):
     return data
 
 
-def updateDailyNewsCtee():
+async def updateDailyNewsCteeAsync():
     """
     @Description:
         更新每日工商日報新聞\n
@@ -90,9 +109,33 @@ def updateDailyNewsCtee():
     pushNewsMessge("CTEE crawler start")
     try:
         newsType = ["industry", "tech", "world"]
-        for t in newsType:
-            news = crawlNewsCtee(t)
-            updateNewsToServer(news)
+
+        async def updateTypeNews(
+            t: str,
+            session: aiohttp.ClientSession,
+        ):
+            news = await crawlNewsCtee(t, session=session)
+            await updateNewsToServer(news, session=session)
+
+        async with aiohttp.ClientSession() as session:
+            await asyncio.gather(*[
+                updateTypeNews(t, session)
+                for t in newsType
+            ])
     except Exception as ex:
         pushNewsMessge(f"CTEE crawler work error: {ex}")
     pushNewsMessge("CTEE crawler done")
+
+
+def updateDailyNewsCtee():
+    """
+    @Description:
+        更新每日工商日報新聞\n
+        Update all daily news related to tw stock market
+        from ctee to stocker server\n
+    @Param:
+        N/A
+    @Return:
+        N/A
+    """
+    asyncio.run(updateDailyNewsCteeAsync())

@@ -1,19 +1,26 @@
+import asyncio
 from datetime import datetime
-from time import sleep
+from typing import Optional
 
+import aiohttp
 import feedparser
-import requests
 
 from crawler.common.notifier import pushNewsMessge
 from crawler.common.util.config import getYahooConfig
 from crawler.common.util.server import getStockNoBasicInfo, updateNewsToServer
 
 
-def crawlNewsYahoo(companyID: str = '2330'):
+MAX_CONCURRENT_REQUESTS = 5
+
+
+async def crawlNewsYahoo(
+    companyID: str = '2330',
+    session: Optional[aiohttp.ClientSession] = None,
+):
     """
     @Description:
-        爬取Yahoo Stock個股每日新聞\n
-        Crawl daily news of specific companyID form Yahoo Stock\n
+        爬取Yahoo Stock個股每日新聞
+        Crawl daily news of specific companyID form Yahoo Stock
     @Param:
         companyID => string (default: '2330')
     @Return:
@@ -30,30 +37,40 @@ def crawlNewsYahoo(companyID: str = '2330'):
 
     url = f"https://tw.stock.yahoo.com/rss?s={companyID}"
 
-    waitTime = 1  # second
-    i, maxRetry = 0, 3
-    done = False
     feed = None
 
-    while not done and i < maxRetry:
-        try:
-            rsp = requests.get(url, headers, timeout=5)
-        except requests.Timeout:
-            sleep(waitTime)
-            waitTime *= 2
-            i += 1
-            continue
+    async def fetch(active_session: aiohttp.ClientSession):
+        waitTime = 1  # second
+        i, maxRetry = 0, 3
 
-        # if status code is not 200 ok
-        # retry 5 times max, each time extends wait time by 2x
-        if rsp.status_code != 200:
-            sleep(waitTime)
-            waitTime *= 2
-            i += 1
-            continue
+        while i < maxRetry:
+            try:
+                async with active_session.get(
+                    url,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=5),
+                ) as rsp:
+                    # if status code is not 200 ok, retry with backoff
+                    if rsp.status != 200:
+                        await asyncio.sleep(waitTime)
+                        waitTime *= 2
+                        i += 1
+                        continue
 
-        feed = feedparser.parse(rsp.text)
-        done = True
+                    text = await rsp.text()
+                    return await asyncio.to_thread(feedparser.parse, text)
+            except (aiohttp.ClientError, asyncio.TimeoutError):
+                await asyncio.sleep(waitTime)
+                waitTime *= 2
+                i += 1
+
+        return None
+
+    if session is None:
+        async with aiohttp.ClientSession() as active_session:
+            feed = await fetch(active_session)
+    else:
+        feed = await fetch(session)
 
     if feed is None:
         return {}
@@ -77,12 +94,12 @@ def crawlNewsYahoo(companyID: str = '2330'):
     return data
 
 
-def updateDailyNewsYahoo():
+async def updateDailyNewsYahooAsync():
     """
     @Description:
-        更新每日Yahoo新聞\n
-        Update all daily news related to tw stock market
-        from yahoo to stocker server\n
+        非同步更新每日Yahoo新聞
+        Async update all daily news related to tw stock market
+        from yahoo to stocker server
     @Param:
         N/A
     @Return:
@@ -99,13 +116,39 @@ def updateDailyNewsYahoo():
     end = round(len(idList) * (currentSlices) / totalSlices)
     idList = idList[start:end]
 
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+
+    async def updateStockNews(
+        stockId: str,
+        session: aiohttp.ClientSession,
+    ):
+        async with semaphore:
+            news = await crawlNewsYahoo(str(stockId), session=session)
+            await updateNewsToServer(news, session=session)
+            await asyncio.sleep(0.005)
+
     try:
-        for _, stockId in enumerate(idList):
-            news = crawlNewsYahoo(str(stockId))
-            updateNewsToServer(news)
-            sleep(0.005)
+        async with aiohttp.ClientSession() as session:
+            await asyncio.gather(*[
+                updateStockNews(stockId, session)
+                for stockId in idList
+            ])
 
     except Exception as ex:
         pushNewsMessge(f"Yahoo crawler error: {ex}")
 
     pushNewsMessge(f"Yahoo crawler ({currentSlices}/{totalSlices}) done")
+
+
+def updateDailyNewsYahoo():
+    """
+    @Description:
+        更新每日Yahoo新聞
+        Update all daily news related to tw stock market
+        from yahoo to stocker server
+    @Param:
+        N/A
+    @Return:
+        N/A
+    """
+    asyncio.run(updateDailyNewsYahooAsync())
