@@ -121,8 +121,15 @@ def updateCriticalInfo() -> None:
         return
 
     # post stocker announcement
-    stockerURL = getStockerConfig()['STOCKER_URL']
+    stockerConfig = getStockerConfig()
+    stockerURL = stockerConfig.get('STOCKER_URL')
+    stockerBearerToken = stockerConfig.get('STOCKER_BEARER_TOKEN')
+
     url = f"{stockerURL}/feed"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {stockerBearerToken}",
+    }
 
     tw = pytz.timezone('Asia/Taipei')
     failed_feeds = []
@@ -149,7 +156,7 @@ def updateCriticalInfo() -> None:
             response = requests.post(
                 url,
                 data=json.dumps(infoJson),
-                headers={"Content-Type": "application/json"},
+                headers=headers,
                 timeout=10,
             )
 

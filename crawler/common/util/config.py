@@ -10,7 +10,8 @@ def getStockerConfig():
     Get Stocker Server Config
     """
     return {
-        'STOCKER_URL': os.environ.get("SERVER_API_URL")
+        'STOCKER_URL': os.environ.get("SERVER_API_URL"),
+        'STOCKER_BEARER_TOKEN': os.environ.get("STOCKER_BEARER_TOKEN"),
     }
 
 

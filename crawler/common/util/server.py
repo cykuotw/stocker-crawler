@@ -48,14 +48,22 @@ def updateNewsToServer(data: list = None):
     if data is None or len(data) == 0:
         return
 
-    stockerURL = getStockerConfig()['STOCKER_URL']
+    stockerConfig = getStockerConfig()
+    stockerURL = stockerConfig.get('STOCKER_URL')
+    stockerBearerToken = stockerConfig.get('STOCKER_BEARER_TOKEN')
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {stockerBearerToken}",
+    }
+
     newsApi = f"{stockerURL}/feed"
     for _, d in enumerate(data):
         try:
             requests.post(
                 newsApi,
                 data=json.dumps(d),
-                headers={"Content-Type": "application/json"},
+                headers=headers,
                 timeout=10
             )
         except Exception as ex:
