@@ -1,27 +1,52 @@
-import json
 import os
 
-from crawler.common.util.config import getYahooConfig
 from crawler.news.yahoo import updateDailyNewsYahoo
+
+
+def _slice_value(event, key):
+    value = event.get(key)
+    if value is None:
+        value = os.environ.get(key)
+    if value is None:
+        return None
+    return int(value)
 
 
 def run(event, context):
     """
     Runner function
     """
-    os.environ["YAHOO_CURRENT_SLICE"] = event["YAHOO_CURRENT_SLICE"]
-    os.environ["YAHOO_TOTAL_SLICE"] = event["YAHOO_TOTAL_SLICE"]
+    currentSlice = _slice_value(event, "YAHOO_CURRENT_SLICE")
+    totalSlices = _slice_value(event, "YAHOO_TOTAL_SLICE")
 
-    updateDailyNewsYahoo()
-    config = getYahooConfig()
+    os.environ["YAHOO_CURRENT_SLICE"] = str(currentSlice)
+    os.environ["YAHOO_TOTAL_SLICE"] = str(totalSlices)
 
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json"
-        },
-        "body": json.dumps({
-            "YAHOO_CURRENT_SLICE": config['current-slices'],
-            "YAHOO_TOTAL_SLICE": config['total-slices'],
-        })
-    }
+    try:
+        result = updateDailyNewsYahoo()
+
+        return {
+            "ok": True,
+            "statusCode": 200,
+            "currentSlice": result["currentSlice"],
+            "totalSlices": result["totalSlices"],
+            "stockCount": result["stockCount"],
+            "startIndex": result["startIndex"],
+            "endIndex": result["endIndex"],
+            "error": None,
+        }
+
+    except Exception as ex:
+        return {
+            "ok": False,
+            "statusCode": 500,
+            "currentSlice": currentSlice,
+            "totalSlices": totalSlices,
+            "stockCount": 0,
+            "startIndex": None,
+            "endIndex": None,
+            "error": {
+                "type": type(ex).__name__,
+                "message": str(ex),
+            },
+        }

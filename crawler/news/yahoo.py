@@ -5,7 +5,6 @@ from typing import Optional
 import aiohttp
 import feedparser
 
-from crawler.common.notifier import pushNewsMessge
 from crawler.common.util.config import getYahooConfig
 from crawler.common.util.server import getStockNoBasicInfo, updateNewsToServer
 
@@ -109,8 +108,6 @@ async def updateDailyNewsYahooAsync():
     totalSlices = config['total-slices']
     currentSlices = config['current-slices']
 
-    pushNewsMessge(f"Yahoo crawler ({currentSlices}/{totalSlices}) start")
-
     idList = getStockNoBasicInfo()
     start = round(len(idList) * (currentSlices-1) / totalSlices)
     end = round(len(idList) * (currentSlices) / totalSlices)
@@ -127,17 +124,20 @@ async def updateDailyNewsYahooAsync():
             await updateNewsToServer(news, session=session)
             await asyncio.sleep(0.005)
 
-    try:
-        async with aiohttp.ClientSession() as session:
-            await asyncio.gather(*[
-                updateStockNews(stockId, session)
-                for stockId in idList
-            ])
+    async with aiohttp.ClientSession() as session:
+        await asyncio.gather(*[
+            updateStockNews(stockId, session)
+            for stockId in idList
+        ])
 
-    except Exception as ex:
-        pushNewsMessge(f"Yahoo crawler error: {ex}")
-
-    pushNewsMessge(f"Yahoo crawler ({currentSlices}/{totalSlices}) done")
+    return {
+        "ok": True,
+        "currentSlice": currentSlices,
+        "totalSlices": totalSlices,
+        "stockCount": len(idList),
+        "startIndex": start,
+        "endIndex": end,
+    }
 
 
 def updateDailyNewsYahoo():
@@ -151,4 +151,4 @@ def updateDailyNewsYahoo():
     @Return:
         N/A
     """
-    asyncio.run(updateDailyNewsYahooAsync())
+    return asyncio.run(updateDailyNewsYahooAsync())
