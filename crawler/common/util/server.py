@@ -20,12 +20,23 @@ def getStockNoBasicInfo(startWith: int = 0) -> list:
     if startWith < 0 or startWith > 9:
         return []
 
-    stockerURL = getStockerConfig()['STOCKER_URL']
+    stockerConfig = getStockerConfig()
+    stockerURL = stockerConfig.get('STOCKER_URL')
+    stockerBearerToken = stockerConfig.get('STOCKER_BEARER_TOKEN')
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {stockerBearerToken}",
+    }
 
     url = f"{stockerURL}/stock_number"
     if startWith != 0:
         url = f"{stockerURL}/stock_number?stock_number_start_with={startWith}"
-    res = requests.get(url, timeout=10)
+    res = requests.get(
+        url,
+        headers=headers,
+        timeout=10
+    )
     ids = None
 
     try:
