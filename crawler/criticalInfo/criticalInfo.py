@@ -1,6 +1,7 @@
 import asyncio
 import json
 import re
+import ssl
 from datetime import datetime
 
 import aiohttp
@@ -17,6 +18,15 @@ from crawler.common.util.config import getStockerConfig
 
 with open('configs/critical_info_filter.json', encoding='utf-8') as criticalInfoReader:
     criticalInfo = json.loads(criticalInfoReader.read())
+
+
+def createMopsSslContext() -> ssl.SSLContext:
+    context = ssl.create_default_context()
+
+    if hasattr(ssl, 'VERIFY_X509_STRICT'):
+        context.verify_flags &= ~ssl.VERIFY_X509_STRICT
+
+    return context
 
 
 def parseCriticalInfoHtml(html: str, exchangeType: str) -> list:
@@ -87,6 +97,7 @@ async def crawlCriticalInfo(session: aiohttp.ClientSession = None):
                 'step': 0
             },
             timeout=aiohttp.ClientTimeout(total=10),
+            ssl=createMopsSslContext(),
         ) as res:
             html = await res.text()
 
@@ -168,7 +179,7 @@ async def updateCriticalInfoAsync() -> None:
     }
 
     tw = pytz.timezone('Asia/Taipei')
-    failed_feeds = []
+    failedFeeds = []
 
     async def postFeed(session: aiohttp.ClientSession, info: dict):
         dateArr = info['發言日期'].split('/')
@@ -199,7 +210,7 @@ async def updateCriticalInfoAsync() -> None:
                 responseText = await response.text()
 
                 if not 200 <= response.status < 300:
-                    failed_feeds.append({
+                    failedFeeds.append({
                         'stock': infoJson['stocks'][0],
                         'title': infoJson['title'],
                         'status': response.status,
@@ -207,7 +218,7 @@ async def updateCriticalInfoAsync() -> None:
                     })
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             print(f"request error: {e}")
-            failed_feeds.append({
+            failedFeeds.append({
                 'stock': infoJson['stocks'][0],
                 'title': infoJson['title'],
                 'status': 'request-error',
@@ -220,11 +231,11 @@ async def updateCriticalInfoAsync() -> None:
             for info in data
         ])
 
-    if failed_feeds:
+    if failedFeeds:
         pushErrorMessage(
             "crawler post feed failed",
             crawler="criticalInfo",
-            details=failed_feeds,
+            details=failedFeeds,
         )
 
     # push to discord everyday between 20:00 to 22:00
