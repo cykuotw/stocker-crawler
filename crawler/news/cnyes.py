@@ -7,6 +7,11 @@ import aiohttp
 
 from crawler.common.notifier import pushNewsMessge
 from crawler.common.util.server import updateNewsToServer
+from crawler.news.headers import (
+    JSON_ACCEPT,
+    MODERN_BROWSER_USER_AGENT,
+    ZH_TW_ACCEPT_LANGUAGE,
+)
 
 
 async def crawlNewsCnyes(
@@ -49,11 +54,9 @@ async def crawlNewsCnyes(
 
     # generate header
     headers = {
-        'User-Agent': ("Mozilla/5.0 "
-                       "(Macintosh; Intel Mac OS X 10_10_1) "
-                       "AppleWebKit/537.36 (KHTML, like Gecko) "
-                       "Chrome/39.0.2171.95 Safari/537.36"),
-        'Content-Type': 'application/json'
+        'User-Agent': MODERN_BROWSER_USER_AGENT,
+        'Accept': JSON_ACCEPT,
+        'Accept-Language': ZH_TW_ACCEPT_LANGUAGE,
     }
 
     async def fetchJson(active_session: aiohttp.ClientSession, url: str):

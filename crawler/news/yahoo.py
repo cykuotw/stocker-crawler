@@ -7,6 +7,11 @@ import feedparser
 
 from crawler.common.util.config import getYahooConfig
 from crawler.common.util.server import getStockNoBasicInfo, updateNewsToServer
+from crawler.news.headers import (
+    MODERN_BROWSER_USER_AGENT,
+    RSS_ACCEPT,
+    ZH_TW_ACCEPT_LANGUAGE,
+)
 
 
 MAX_CONCURRENT_REQUESTS = 5
@@ -27,11 +32,9 @@ async def crawlNewsYahoo(
     """
 
     headers = {
-        'User-Agent': ("Mozilla/5.0 "
-                       "(Macintosh; Intel Mac OS X 10_10_1) "
-                       "AppleWebKit/537.36 (KHTML, like Gecko) "
-                       "Chrome/39.0.2171.95 Safari/537.36"),
-        'Content-Type': 'text/xml;'
+        'User-Agent': MODERN_BROWSER_USER_AGENT,
+        'Accept': RSS_ACCEPT,
+        'Accept-Language': ZH_TW_ACCEPT_LANGUAGE,
     }
 
     url = f"https://tw.stock.yahoo.com/rss?s={companyID}"

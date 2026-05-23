@@ -9,6 +9,11 @@ import feedparser
 
 from crawler.common.notifier import pushNewsMessge
 from crawler.common.util.server import updateNewsToServer
+from crawler.news.headers import (
+    MODERN_BROWSER_USER_AGENT,
+    RSS_ACCEPT,
+    ZH_TW_ACCEPT_LANGUAGE,
+)
 
 
 async def crawlNewsCtee(
@@ -34,15 +39,10 @@ async def crawlNewsCtee(
 
     # request header
     headers = {
-        'User-Agent': (
-            "Mozilla/5.0 " +
-            "(Macintosh; Intel Mac OS X 10_10_1) " +
-            "AppleWebKit/537.36 (KHTML, like Gecko) " +
-            "Chrome/39.0.2171.95 Safari/537.36"
-        ),
-        'Accept': "*/*",
+        'User-Agent': MODERN_BROWSER_USER_AGENT,
+        'Accept': RSS_ACCEPT,
+        'Accept-Language': ZH_TW_ACCEPT_LANGUAGE,
         "Sec-Fetch-User": "?1",
-        "Content-Type": 'application/rss+xml; charset=utf-8',
         "Referer": "https://www.ctee.com.tw/livenews/industry"
     }
 

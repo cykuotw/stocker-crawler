@@ -12,6 +12,11 @@ from dateutil import tz
 
 from crawler.common.notifier import pushNewsMessge
 from crawler.common.util.server import updateNewsToServer
+from crawler.news.headers import (
+    HTML_ACCEPT,
+    MODERN_BROWSER_USER_AGENT,
+    ZH_TW_ACCEPT_LANGUAGE,
+)
 
 
 async def crawlNewsUdn(
@@ -42,11 +47,9 @@ async def crawlNewsUdn(
 
     # request header
     headers = {
-        'User-Agent': ("Mozilla/5.0 "
-                       "(Macintosh; Intel Mac OS X 10_10_1) "
-                       "AppleWebKit/537.36 (KHTML, like Gecko) "
-                       "Chrome/39.0.2171.95 Safari/537.36"),
-        'Content-Type': 'text/html; charset=UTF-8'
+        'User-Agent': MODERN_BROWSER_USER_AGENT,
+        'Accept': HTML_ACCEPT,
+        'Accept-Language': ZH_TW_ACCEPT_LANGUAGE,
     }
 
     # data container
