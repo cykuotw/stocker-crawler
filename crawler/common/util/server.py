@@ -82,9 +82,19 @@ async def updateNewsToServer(
                     headers=headers,
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as res:
-                    await res.read()
+                    responseText = await res.text()
+                    if not 200 <= res.status < 300:
+                        pushNewsMessge(
+                            "stocker server error: "
+                            f"status={res.status} response={responseText}"
+                        )
             except Exception as ex:
-                pushNewsMessge(f"stocker server error: {ex}")
+                # TimeoutError has an empty message, so retain its type for diagnostics.
+                errorMessage = f"{type(ex).__name__}: {ex}" if str(
+                    ex) else type(ex).__name__
+                pushNewsMessge(
+                    f"stocker server error: {errorMessage}"
+                )
 
     if session is None:
         async with aiohttp.ClientSession() as active_session:

@@ -13,8 +13,8 @@ from crawler.news.headers import (
     ZH_TW_ACCEPT_LANGUAGE,
 )
 
-
 MAX_CONCURRENT_REQUESTS = 5
+MAX_RETRIES = 2
 
 
 async def crawlNewsYahoo(
@@ -42,29 +42,21 @@ async def crawlNewsYahoo(
     feed = None
 
     async def fetch(active_session: aiohttp.ClientSession):
-        waitTime = 1  # second
-        i, maxRetry = 0, 3
-
-        while i < maxRetry:
+        for retryCount in range(MAX_RETRIES + 1):
             try:
                 async with active_session.get(
                     url,
                     headers=headers,
                     timeout=aiohttp.ClientTimeout(total=5),
                 ) as rsp:
-                    # if status code is not 200 ok, retry with backoff
-                    if rsp.status != 200:
-                        await asyncio.sleep(waitTime)
-                        waitTime *= 2
-                        i += 1
-                        continue
-
-                    text = await rsp.text()
-                    return await asyncio.to_thread(feedparser.parse, text)
+                    if rsp.status == 200:
+                        text = await rsp.text()
+                        return await asyncio.to_thread(feedparser.parse, text)
             except (aiohttp.ClientError, asyncio.TimeoutError):
-                await asyncio.sleep(waitTime)
-                waitTime *= 2
-                i += 1
+                pass
+
+            if retryCount < MAX_RETRIES:
+                await asyncio.sleep(2 ** retryCount)
 
         return None
 

@@ -9,6 +9,9 @@ from botocore.config import Config as botoConfig
 from crawler.common.notifier import pushErrorMessage, pushNewsMessge
 
 
+MAX_CONCURRENT_WORKERS = 7
+
+
 def _error_result(totalSlice: int, currentSlice: int, errorType: str, message: str):
     return {
         "ok": False,
@@ -171,22 +174,20 @@ def _summarize(totalSlice: int, results: list):
 
 
 def run(event, context):
-    RESERVED_CNT = 10
-
     total = totalSlice = int(os.environ["YAHOO_TOTAL_SLICE"])
     results = []
     lock = threading.Lock()
 
     _notify(f"Yahoo crawler start. totalSlices={totalSlice}")
 
-    chunkCnt = math.ceil(totalSlice/RESERVED_CNT)
+    chunkCnt = math.ceil(totalSlice/MAX_CONCURRENT_WORKERS)
     chunks = []
     for i in range(chunkCnt):
-        curr = RESERVED_CNT
+        curr = MAX_CONCURRENT_WORKERS
         if i == chunkCnt-1:
             curr = total
         chunks.append(curr)
-        total -= RESERVED_CNT
+        total -= MAX_CONCURRENT_WORKERS
 
     offset = 0
     for cnt in chunks:

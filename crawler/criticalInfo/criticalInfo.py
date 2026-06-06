@@ -16,6 +16,9 @@ from crawler.common.notifier import (
 )
 from crawler.common.util.config import getStockerConfig
 
+MAX_CONCURRENT_FEED_POSTS = 10
+MAX_FEED_POST_RETRIES = 2
+
 with open('configs/critical_info_filter.json', encoding='utf-8') as criticalInfoReader:
     criticalInfo = json.loads(criticalInfoReader.read())
 
@@ -180,6 +183,7 @@ async def updateCriticalInfoAsync() -> None:
 
     tw = pytz.timezone('Asia/Taipei')
     failedFeeds = []
+    feedPostSemaphore = asyncio.Semaphore(MAX_CONCURRENT_FEED_POSTS)
 
     async def postFeed(session: aiohttp.ClientSession, info: dict):
         dateArr = info['發言日期'].split('/')
@@ -200,30 +204,45 @@ async def updateCriticalInfoAsync() -> None:
             'source': 'mops'
         }
 
-        try:
-            async with session.post(
-                url,
-                json=infoJson,
-                headers=headers,
-                timeout=aiohttp.ClientTimeout(total=10),
-            ) as response:
-                responseText = await response.text()
+        for retryCount in range(MAX_FEED_POST_RETRIES + 1):
+            try:
+                async with feedPostSemaphore:
+                    async with session.post(
+                        url,
+                        json=infoJson,
+                        headers=headers,
+                        timeout=aiohttp.ClientTimeout(total=10),
+                    ) as response:
+                        responseText = await response.text()
 
-                if not 200 <= response.status < 300:
-                    failedFeeds.append({
-                        'stock': infoJson['stocks'][0],
-                        'title': infoJson['title'],
-                        'status': response.status,
-                        'message': responseText,
-                    })
-        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            print(f"request error: {e}")
-            failedFeeds.append({
-                'stock': infoJson['stocks'][0],
-                'title': infoJson['title'],
-                'status': 'request-error',
-                'message': str(e),
-            })
+                        if not 200 <= response.status < 300:
+                            failedFeeds.append({
+                                'stock': infoJson['stocks'][0],
+                                'title': infoJson['title'],
+                                'status': response.status,
+                                'message': responseText,
+                            })
+                        return
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                # TimeoutError has an empty message, so retain its type for diagnostics.
+                errorMessage = f"{type(e).__name__}: {e}" if str(
+                    e) else type(e).__name__
+
+                if retryCount < MAX_FEED_POST_RETRIES:
+                    print(
+                        f"request error: {errorMessage}; "
+                        f"retrying ({retryCount + 1}/{MAX_FEED_POST_RETRIES})"
+                    )
+                    await asyncio.sleep(2 ** retryCount)
+                    continue
+
+                print(f"request error after retries: {errorMessage}")
+                failedFeeds.append({
+                    'stock': infoJson['stocks'][0],
+                    'title': infoJson['title'],
+                    'status': 'request-error',
+                    'message': errorMessage,
+                })
 
     async with aiohttp.ClientSession() as session:
         await asyncio.gather(*[
