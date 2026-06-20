@@ -1,5 +1,6 @@
 from crawler.news.cnyes import updateDailyNewsCnyes
 from crawler.news.ctee import updateDailyNewsCtee
+from crawler.news.trendforce import updateDailyNewsTrendForce
 from crawler.news.udn import updateDailyNewsUdn
 
 
@@ -10,3 +11,4 @@ def run(event, context):
     updateDailyNewsCnyes()
     updateDailyNewsCtee()
     updateDailyNewsUdn()
+    updateDailyNewsTrendForce()
