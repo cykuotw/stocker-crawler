@@ -19,9 +19,9 @@ def pushNewsMessge(message: str = ""):
         return
 
     tw = pytz.timezone('Asia/Taipei')
-    slack.push(
-        "Stocker每日新聞",
-        f"{datetime.now(tw).strftime('%m/%d/%Y, %H:%M:%S')} {message}")
+    # slack.push(
+    #     "Stocker每日新聞",
+    #     f"{datetime.now(tw).strftime('%m/%d/%Y, %H:%M:%S')} {message}")
     discord.pushLog(
         "Stocker每日新聞",
         f"{datetime.now(tw).strftime('%m/%d/%Y, %H:%M:%S')} {message}")
@@ -41,9 +41,9 @@ def pushCriticalInfoMessage(message: str = ""):
         return
 
     tw = pytz.timezone('Asia/Taipei')
-    slack.push(
-        "Stocker每日重訊",
-        f"{datetime.now(tw).strftime('%m/%d/%Y, %H:%M:%S')} {message}")
+    # slack.push(
+    #     "Stocker每日重訊",
+    #     f"{datetime.now(tw).strftime('%m/%d/%Y, %H:%M:%S')} {message}")
     discord.pushLog(
         "Stocker每日重訊",
         f"{datetime.now(tw).strftime('%m/%d/%Y, %H:%M:%S')} {message}")
